@@ -8,7 +8,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY app ./app
 
-EXPOSE 8000
-
-# Ejecutar como root para evitar conflictos de permisos con volúmenes de Windows
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Render usa la variable de entorno PORT. Usamos sh -c para que se evalúe.
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
