@@ -2,11 +2,17 @@
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime
+import os
+import json
+from openai import OpenAI
 
 from app.database import SessionLocal
 from app.models.cv import CVDB, SkillDB
 
 router = APIRouter()
+
+# Inicializar el cliente de OpenAI (lee la clave desde las variables de entorno de Render)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class CVProcesarRequest(BaseModel):
     texto_cv: str
@@ -23,33 +29,71 @@ def get_db():
         db.close()
 
 # ---------------------------------------------------------
-# 1. CREAR: Procesar CV con IA (Simulación)
+# 1. CREAR: Procesar CV con IA (OpenAI REAL)
 # ---------------------------------------------------------
 @router.post("/cvs/procesar-ia")
 async def procesar_cv(request: CVProcesarRequest, db: Session = Depends(get_db)):
     texto_original = request.texto_cv
-    respuesta_ia = {
-        "skills": ["Python", "FastAPI", "SQLAlchemy", "Machine Learning", "Git"],
-        "texto_redactado": "Soy un desarrollador con experiencia en Python. Mi correo es [REDACTADO] y mi teléfono [REDACTADO]."
-    }
     
+    try:
+        # Llamar a OpenAI para extraer skills reales y redactar el texto
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": """Eres un experto en reclutamiento técnico. 
+                    Tu tarea es extraer habilidades (skills) del texto del CV proporcionado.
+                    Devuelve ÚNICAMENTE un objeto JSON válido con este formato exacto:
+                    {
+                      "skills": ["Habilidad 1", "Habilidad 2", "Habilidad 3"],
+                      "texto_redactado": "Texto del CV con información personal redactada"
+                    }
+                    Si no encuentras habilidades, devuelve: {"skills": [], "texto_redactado": ""}
+                    """
+                },
+                {
+                    "role": "user", 
+                    "content": texto_original
+                }
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1
+        )
+        
+        # Parsear la respuesta de OpenAI
+        result_text = response.choices[0].message.content
+        respuesta_ia = json.loads(result_text)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error al procesar con IA: {str(e)}"
+        )
+
+    # Guardar en la base de datos
     nuevo_cv = CVDB(
         perfil_ciego_id=f"cv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
         source_text=texto_original,
-        redacted_text=respuesta_ia["texto_redactado"],
+        redacted_text=respuesta_ia.get("texto_redactado", ""),
         status="procesado",
-        redacted_count=max(0, len(texto_original) - len(respuesta_ia["texto_redactado"]))
+        redacted_count=max(0, len(texto_original) - len(respuesta_ia.get("texto_redactado", "")))
     )
     db.add(nuevo_cv)
     db.flush()
 
-    for skill_nombre in respuesta_ia["skills"]:
+    # Guardar las skills extraídas por OpenAI
+    for skill_nombre in respuesta_ia.get("skills", []):
         db.add(SkillDB(skill=skill_nombre, cv_id=nuevo_cv.id))
 
     db.commit()
     db.refresh(nuevo_cv)
 
-    return {"mensaje": "CV procesado y guardado", "cv_id": nuevo_cv.id, "skills_extraidas": respuesta_ia["skills"]}
+    return {
+        "mensaje": "CV procesado y guardado con IA real", 
+        "cv_id": nuevo_cv.id, 
+        "skills_extraidas": respuesta_ia.get("skills", [])
+    }
 
 # ---------------------------------------------------------
 # 2. LEER: Obtener todos los CVs
@@ -78,12 +122,12 @@ def actualizar_cv(cv_id: int, request: CVUpdateRequest, db: Session = Depends(ge
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
-    
+
     if request.texto_cv is not None:
         cv.source_text = request.texto_cv
     if request.status is not None:
         cv.status = request.status
-        
+
     db.commit()
     db.refresh(cv)
     return {"mensaje": "CV actualizado exitosamente", "cv": cv.id}
@@ -96,9 +140,7 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
-    
-    # Gracias a 'cascade="all, delete-orphan"' en el modelo, 
-    # las skills se borran automáticamente al borrar el CV.
+
     db.delete(cv)
     db.commit()
     return {"mensaje": f"CV {cv_id} y sus habilidades asociadas eliminados exitosamente"}
