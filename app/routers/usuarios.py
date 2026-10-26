@@ -1,32 +1,23 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta
 import os
 
 from app.database import SessionLocal
-from app.models.usuarios import Usuario
+# ✅ IMPORTAMOS EL NOMBRE REAL DE TU MODELO Y SUS FUNCIONES
+from app.models.usuarios import UsuarioModel, obtener_password_hash, verificar_password
 from pydantic import BaseModel
 
 router = APIRouter()
 
 # ---------------------------------------------------------
-# 🔒 CONFIGURACIÓN DE SEGURIDAD
+# 🔒 CONFIGURACIÓN DE SEGURIDAD JWT
 # ---------------------------------------------------------
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
-
-def get_password_hash(password: str) -> str:
-    """🔒 Encripta la contraseña antes de guardarla."""
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """🔒 Verifica si la contraseña coincide con el hash."""
-    return pwd_context.verify(plain_password, hashed_password)
 
 def get_db():
     db = SessionLocal()
@@ -36,7 +27,7 @@ def get_db():
         db.close()
 
 # ---------------------------------------------------------
-# SCHEMAS
+# SCHEMAS (Pydantic)
 # ---------------------------------------------------------
 class UsuarioCrear(BaseModel):
     nombre: str
@@ -60,19 +51,19 @@ class Token(BaseModel):
 # ---------------------------------------------------------
 @router.post("/usuarios/", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def crear_usuario(usuario: UsuarioCrear, db: Session = Depends(get_db)):
-    # Verificar si ya existe
-    db_user = db.query(Usuario).filter(Usuario.nombre == usuario.nombre).first()
+    # ✅ Usamos UsuarioModel
+    db_user = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
     if db_user:
         raise HTTPException(status_code=400, detail="El nombre de usuario ya está registrado")
 
-    # 🔒 ENCRIPTAR la contraseña
-    hashed_password = get_password_hash(usuario.password)
+    # ✅ Usamos tu función de encriptación del modelo
+    hashed_password = obtener_password_hash(usuario.password)
 
-    # Crear usuario con contraseña hasheada
-    nuevo_usuario = Usuario(
+    # ✅ Creamos la instancia con UsuarioModel
+    nuevo_usuario = UsuarioModel(
         nombre=usuario.nombre,
         rol=usuario.rol,
-        password=hashed_password  # 🔒 Guardamos el HASH, no el texto plano
+        password=hashed_password
     )
     
     db.add(nuevo_usuario)
@@ -86,11 +77,11 @@ def crear_usuario(usuario: UsuarioCrear, db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 @router.post("/usuarios/login", response_model=Token)
 def login_usuario(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Buscar usuario
-    usuario = db.query(Usuario).filter(Usuario.nombre == form_data.username).first()
+    # ✅ Buscamos usando UsuarioModel
+    usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == form_data.username).first()
     
-    # 🔒 VERIFICAR contraseña contra el hash
-    if not usuario or not verify_password(form_data.password, usuario.password):
+    # ✅ Verificamos con tu función del modelo
+    if not usuario or not verificar_password(form_data.password, usuario.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Nombre de usuario o contraseña incorrectos",
