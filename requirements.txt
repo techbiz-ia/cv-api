@@ -1,5 +1,4 @@
-﻿   # CAMBIO FORZADO PARA RENDER
-fastapi
+﻿ fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
