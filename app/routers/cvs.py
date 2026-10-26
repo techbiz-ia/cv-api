@@ -1,4 +1,5 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer  # 🔒 1. Importar el esquema de seguridad
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -11,7 +12,9 @@ from app.models.cv import CVDB, SkillDB
 
 router = APIRouter()
 
-# Inicializar el cliente de OpenAI (lee la clave desde las variables de entorno de Render)
+# 🔒 2. Decirle a FastAPI dónde se obtiene el token (en el login)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="usuarios/login")
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class CVProcesarRequest(BaseModel):
@@ -32,11 +35,14 @@ def get_db():
 # 1. CREAR: Procesar CV con IA (OpenAI REAL)
 # ---------------------------------------------------------
 @router.post("/cvs/procesar-ia")
-async def procesar_cv(request: CVProcesarRequest, db: Session = Depends(get_db)):
+async def procesar_cv(
+    request: CVProcesarRequest, 
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)  # 🔒 3. Exigir el token aquí (¡Esto hace aparecer el candado!)
+):
     texto_original = request.texto_cv
     
     try:
-        # Llamar a OpenAI para extraer skills reales y redactar el texto
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -61,7 +67,6 @@ async def procesar_cv(request: CVProcesarRequest, db: Session = Depends(get_db))
             temperature=0.1
         )
         
-        # Parsear la respuesta de OpenAI
         result_text = response.choices[0].message.content
         respuesta_ia = json.loads(result_text)
         
@@ -71,7 +76,6 @@ async def procesar_cv(request: CVProcesarRequest, db: Session = Depends(get_db))
             detail=f"Error al procesar con IA: {str(e)}"
         )
 
-    # Guardar en la base de datos
     nuevo_cv = CVDB(
         perfil_ciego_id=f"cv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
         source_text=texto_original,
@@ -82,7 +86,6 @@ async def procesar_cv(request: CVProcesarRequest, db: Session = Depends(get_db))
     db.add(nuevo_cv)
     db.flush()
 
-    # Guardar las skills extraídas por OpenAI
     for skill_nombre in respuesta_ia.get("skills", []):
         db.add(SkillDB(skill=skill_nombre, cv_id=nuevo_cv.id))
 

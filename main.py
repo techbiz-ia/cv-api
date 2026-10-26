@@ -1,4 +1,13 @@
-﻿from contextlib import asynccontextmanager
+﻿   from fastapi.middleware.cors import CORSMiddleware
+   # Permitir peticiones desde cualquier origen (para desarrollo)
+   app.add_middleware(
+       CORSMiddleware,
+       allow_origins=["*"],  # En producción real, cambia "*" por tu dominio web
+       allow_credentials=True,
+       allow_methods=["*"],
+       allow_headers=["*"],
+   )
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.database import Base, engine
 from app.routers import usuarios, cvs
