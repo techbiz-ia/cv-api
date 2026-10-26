@@ -1,18 +1,9 @@
-﻿   from fastapi.middleware.cors import CORSMiddleware
-   # Permitir peticiones desde cualquier origen (para desarrollo)
-   app.add_middleware(
-       CORSMiddleware,
-       allow_origins=["*"],  # En producción real, cambia "*" por tu dominio web
-       allow_credentials=True,
-       allow_methods=["*"],
-       allow_headers=["*"],
-   )
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.routers import usuarios, cvs
 
-# Importar modelos para que SQLAlchemy los registre antes de crear tablas
 import app.models.usuarios
 import app.models.cv
 
@@ -22,13 +13,20 @@ async def lifespan(app: FastAPI):
     print("✅ Tablas de base de datos verificadas y creadas.")
     yield
 
-# Aquí está la clave: FastAPI crea /docs y /redoc por defecto
 app = FastAPI(
     title="Mi API MVP", 
     version="0.1.0", 
     lifespan=lifespan,
-    docs_url="/docs",      # Forzamos la ruta de la documentación
-    redoc_url="/redoc"     # Forzamos la ruta alternativa
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(usuarios.router)
@@ -41,3 +39,4 @@ def read_root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
