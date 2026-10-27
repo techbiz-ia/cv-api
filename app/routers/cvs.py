@@ -192,3 +192,51 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     db.delete(cv)
     db.commit()
     return {"mensaje": f"CV {cv_id} y sus habilidades asociadas eliminados exitosamente"}
+    # ---------------------------------------------------------
+# 6. BUSCAR: Match de Candidatos por Requisitos (Blind Hiring)
+# ---------------------------------------------------------
+class BusquedaRequisitos(BaseModel):
+    skills_requeridas: list[str]  # Ej: ["Python", "AWS", "Docker"]
+    min_match_porcentaje: int = 50  # Por defecto, mostrar solo si coincide al 50%
+
+@router.post("/cvs/buscar-candidatos")
+def buscar_candidatos(requisitos: BusquedaRequisitos, db: Session = Depends(get_db)):
+    # 1. Obtener todos los CVs que ya fueron procesados
+    cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").all()
+    candidatos_encontrados = []
+    
+    skills_requeridas_lower = [skill.lower() for skill in requisitos.skills_requeridas]
+    total_requeridas = len(skills_requeridas_lower)
+    
+    for cv in cvs_procesados:
+        # Obtener las skills de este CV
+        skills_cv = db.query(SkillDB).filter(SkillDB.cv_id == cv.id).all()
+        skills_cv_lower = [s.skill.lower() for s in skills_cv]
+        
+        # 2. Calcular intersección (cuántas skills coinciden)
+        skills_coincidentes = [skill for skill in skills_requeridas_lower if skill in skills_cv_lower]
+        
+        # 3. Calcular porcentaje de match
+        if total_requeridas > 0:
+            match_porcentaje = int((len(skills_coincidentes) / total_requeridas) * 100)
+        else:
+            match_porcentaje = 0
+            
+        # 4. Filtrar por el porcentaje mínimo solicitado
+        if match_porcentaje >= requisitos.min_match_porcentaje:
+            candidatos_encontrados.append({
+                "perfil_ciego_id": cv.perfil_ciego_id,
+                "match_porcentaje": match_porcentaje,
+                "skills_coincidentes": skills_coincidentes,
+                "todas_las_skills_del_cv": [s.skill for s in skills_cv],
+                # 🔒 SEGURIDAD: Solo enviamos el texto redactado, NUNCA el original
+                "cv_redactado": cv.redacted_text 
+            })
+            
+    # 5. Ordenar resultados: del mayor match al menor
+    candidatos_encontrados.sort(key=lambda x: x["match_porcentaje"], reverse=True)
+    
+    return {
+        "total_encontrados": len(candidatos_encontrados),
+        "candidatos": candidatos_encontrados
+    }
