@@ -1,25 +1,11 @@
-﻿import jwtimport jwt
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
-# ---------------------------------------------------------
-# 🔐 SEGURIDAD: Validación de identidad y rol desde el JWT
-# ---------------------------------------------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
-ALGORITHM = "HS256"
-
-def validar_token_y_obtener_rol(token: str) -> dict:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado. Vuelve a iniciar sesión.")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Token inválido.")
-    return payload
+﻿from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
 import json
+import jwt
 from openai import OpenAI
 import pypdf
 import docx
@@ -31,6 +17,19 @@ from app.models.cv import CVDB, SkillDB
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="usuarios/login")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# 🔐 SEGURIDAD: Validación de identidad y rol desde el JWT
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
+ALGORITHM = "HS256"
+
+def validar_token_y_obtener_rol(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado. Vuelve a iniciar sesión.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+    return payload
 
 class CVProcesarRequest(BaseModel):
     texto_cv: str
@@ -119,7 +118,7 @@ def procesar_cv_background(cv_id: int, texto_original: str):
         db.close()
 
 # ---------------------------------------------------------
-# 1. CREAR: Procesar CV desde TEXTO (Síncrono para feedback inmediato)
+# 1. CREAR: Procesar CV desde TEXTO
 # ---------------------------------------------------------
 @router.post("/cvs/procesar-ia")
 async def procesar_cv(
@@ -128,8 +127,6 @@ async def procesar_cv(
     token: str = Depends(oauth2_scheme)
 ):
     texto_original = request.texto_cv
-    # Nota: Para simplificar la demo, este endpoint procesa síncronamente 
-    # o puedes cambiarlo a background_tasks.add_task si prefieres
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -227,106 +224,49 @@ def obtener_todos_los_cvs(db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 # 3. LEER UNO: Obtener un CV específico
 # ---------------------------------------------------------
-# ---------------------------------------------------------
-# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
-# ---------------------------------------------------------
-@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
-def revelar_identidad(
-    perfil_ciego_id: str,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
-    payload = validar_token_y_obtener_rol(token)
-
-    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
-    if payload.get("rol") != "Admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
-        )
-
-    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
-    if not cv:
-        raise HTTPException(status_code=404, detail="Perfil no encontrado")
-
-    # 📋 Auditoría: quién reveló qué y cuándo
-    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
-
-    return {
-        "perfil_ciego_id": cv.perfil_ciego_id,
-        "identidad_revelada_por": payload.get("sub"),
-        "texto_original_completo": cv.source_text,
-        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
-    }# ---------------------------------------------------------
-# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
-# ---------------------------------------------------------
-@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
-def revelar_identidad(
-    perfil_ciego_id: str,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
-    payload = validar_token_y_obtener_rol(token)
-
-    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
-    if payload.get("rol") != "Admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
-        )
-
-    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
-    if not cv:
-        raise HTTPException(status_code=404, detail="Perfil no encontrado")
-
-    # 📋 Auditoría: quién reveló qué y cuándo
-    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
-
-    return {
-        "perfil_ciego_id": cv.perfil_ciego_id,
-        "identidad_revelada_por": payload.get("sub"),
-        "texto_original_completo": cv.source_text,
-        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
-    }# ---------------------------------------------------------
-# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
-# ---------------------------------------------------------
-@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
-def revelar_identidad(
-    perfil_ciego_id: str,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
-    payload = validar_token_y_obtener_rol(token)
-
-    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
-    if payload.get("rol") != "Admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
-        )
-
-    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
-    if not cv:
-        raise HTTPException(status_code=404, detail="Perfil no encontrado")
-
-    # 📋 Auditoría: quién reveló qué y cuándo
-    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
-
-    return {
-        "perfil_ciego_id": cv.perfil_ciego_id,
-        "identidad_revelada_por": payload.get("sub"),
-        "texto_original_completo": cv.source_text,
-        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
-    }
 @router.get("/cvs/{cv_id}")
 def obtener_cv_por_id(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
-    if not cv: raise HTTPException(status_code=404, detail="CV no encontrado")
+    if not cv: 
+        raise HTTPException(status_code=404, detail="CV no encontrado")
     skills = db.query(SkillDB).filter(SkillDB.cv_id == cv.id).all()
     return {
-        "id": cv.id, "perfil_ciego_id": cv.perfil_ciego_id,
-        "texto_original": cv.source_text, "texto_redactado": cv.redacted_text,
-        "status": cv.status, "skills": [s.skill for s in skills]
+        "id": cv.id, 
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "texto_original": cv.source_text, 
+        "texto_redactado": cv.redacted_text,
+        "status": cv.status, 
+        "skills": [s.skill for s in skills]
+    }
+
+# ---------------------------------------------------------
+# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
+# ---------------------------------------------------------
+@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
+def revelar_identidad(
+    perfil_ciego_id: str,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    payload = validar_token_y_obtener_rol(token)
+
+    if payload.get("rol") != "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
+        )
+
+    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+
+    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
+
+    return {
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "identidad_revelada_por": payload.get("sub"),
+        "texto_original_completo": cv.source_text,
+        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
     }
 
 # ---------------------------------------------------------
@@ -359,22 +299,29 @@ def buscar_candidatos(requisitos: BusquedaRequisitos, db: Session = Depends(get_
     return {"total_encontrados": len(candidatos_encontrados), "candidatos": candidatos_encontrados}
 
 # ---------------------------------------------------------
-# 5. ACTUALIZAR y 6. ELIMINAR
+# 5. ACTUALIZAR
 # ---------------------------------------------------------
 @router.put("/cvs/{cv_id}")
 def actualizar_cv(cv_id: int, request: CVUpdateRequest, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
-    if not cv: raise HTTPException(status_code=404, detail="CV no encontrado")
-    if request.texto_cv is not None: cv.source_text = request.texto_cv
-    if request.status is not None: cv.status = request.status
+    if not cv: 
+        raise HTTPException(status_code=404, detail="CV no encontrado")
+    if request.texto_cv is not None: 
+        cv.source_text = request.texto_cv
+    if request.status is not None: 
+        cv.status = request.status
     db.commit()
     db.refresh(cv)
     return {"mensaje": "CV actualizado exitosamente", "cv": cv.id}
 
+# ---------------------------------------------------------
+# 6. ELIMINAR
+# ---------------------------------------------------------
 @router.delete("/cvs/{cv_id}")
 def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
-    if not cv: raise HTTPException(status_code=404, detail="CV no encontrado")
+    if not cv: 
+        raise HTTPException(status_code=404, detail="CV no encontrado")
     db.delete(cv)
     db.commit()
     return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
