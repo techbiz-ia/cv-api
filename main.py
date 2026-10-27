@@ -1,9 +1,8 @@
-﻿   from fastapi.staticfiles import StaticFiles
-   from fastapi.responses import FileResponse
-   import os
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.database import Base, engine
 from app.routers import usuarios, cvs
 
@@ -35,15 +34,13 @@ app.add_middleware(
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
 
-def read_root():
-    return {"mensaje": "API MVP funcionando correctamente"}
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
-   # Servir la interfaz web profesional
-   app.mount("/static", StaticFiles(directory="static"), name="static")
 
-   @app.get("/")
-   def serve_frontend():
-       return FileResponse("static/index.html")
+# 🔥 AQUÍ ESTÁ LA MAGIA: Servir la interfaz web profesional en la raíz
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse("static/index.html")
