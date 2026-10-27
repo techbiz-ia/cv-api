@@ -257,7 +257,76 @@ def serve_frontend():
                 }
             }
 
-            async function buscarCandidatos() {
+         function obtenerRol() {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.rol || "User";
+    } catch (e) {
+        return "User";
+    }
+}
+
+async function revelarIdentidad(perfilId, boton) {
+    const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
+    contenedor.classList.remove('hidden');
+    contenedor.innerHTML = '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verificando permisos de administrador...</p>';
+
+    try {
+        const response = await fetch(`${API_URL}/cvs/perfil/${encodeURIComponent(perfilId)}/identidad`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Acceso denegado");
+
+        contenedor.innerHTML = `
+            <h5 class="text-sm font-bold text-blue-800 mb-2">
+                <i class="fas fa-unlock"></i> Identidad Revelada (Acción Auditada)
+            </h5>
+            <p class="text-xs text-gray-500 mb-2">Revelado por: ${data.identidad_revelada_por}</p>
+            <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-blue-100">${data.texto_original_completo}</pre>
+        `;
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-check"></i> Identidad Revelada';
+
+    } catch (err) {
+        contenedor.innerHTML = `<p class="text-sm text-red-600">🔒 ${err.message}</p>`;
+    }
+}function obtenerRol() {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.rol || "User";
+    } catch (e) {
+        return "User";
+async function revelarIdentidad(perfilId, boton) {
+    const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
+    contenedor.classList.remove('hidden');
+    contenedor.innerHTML = '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verificando permisos de administrador...</p>';
+
+    try {
+        const response = await fetch(`${API_URL}/cvs/perfil/${encodeURIComponent(perfilId)}/identidad`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Acceso denegado");
+
+        contenedor.innerHTML = `
+            <h5 class="text-sm font-bold text-blue-800 mb-2">
+                <i class="fas fa-unlock"></i> Identidad Revelada (Acción Auditada)
+            </h5>
+            <p class="text-xs text-gray-500 mb-2">Revelado por: ${data.identidad_revelada_por}</p>
+            <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-blue-100">${data.texto_original_completo}</pre>
+        `;
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-check"></i> Identidad Revelada';
+
+    } catch (err) {
+        contenedor.innerHTML = `<p class="text-sm text-red-600">🔒 ${err.message}</p>`;
+    }
+               async function buscarCandidatos() {
                 const skillsInput = document.getElementById('searchSkills').value;
                 const minMatch = parseInt(document.getElementById('searchMinMatch').value) || 50;
                 const errorDiv = document.getElementById('searchError');
@@ -288,7 +357,7 @@ def serve_frontend():
                         resultsDiv.innerHTML = '<p class="text-center text-gray-500 py-4">No se encontraron candidatos con esos requisitos.</p>';
                         return;
                     }
-
+const esAdmin = obtenerRol() === "Admin";
                     data.candidatos.forEach(candidato => {
                         const card = document.createElement('div');
                         card.className = 'bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition';
@@ -310,6 +379,18 @@ def serve_frontend():
                                 <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold">Perfil Redactado (Anónimo):</p>
                                 <p class="text-sm text-gray-700 italic leading-relaxed">${candidato.cv_redactado || 'No disponible'}</p>
                             </div>
+                                                        <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+                                <span class="text-xs text-gray-500"><i class="fas fa-user-shield"></i> Datos protegidos por privacidad</span>
+                                ${esAdmin ? `
+                                    <button onclick="revelarIdentidad('${candidato.perfil_ciego_id}', this)" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                                        <i class="fas fa-unlock mr-1"></i> Ver Identidad (Admin)
+                                    </button>
+                                ` : `
+                                    <span class="text-xs text-gray-400">Solicita acceso a RR.HH.</span>
+                                `}
+                            </div>
+                            <div class="identity-box hidden mt-4 bg-blue-50 border border-blue-200 p-4 rounded-lg"></div>
                         `;
                         resultsDiv.appendChild(card);
                     });

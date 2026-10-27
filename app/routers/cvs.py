@@ -1,4 +1,19 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
+﻿import jwtimport jwt
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
+# ---------------------------------------------------------
+# 🔐 SEGURIDAD: Validación de identidad y rol desde el JWT
+# ---------------------------------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
+ALGORITHM = "HS256"
+
+def validar_token_y_obtener_rol(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado. Vuelve a iniciar sesión.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+    return payload
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -212,6 +227,97 @@ def obtener_todos_los_cvs(db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 # 3. LEER UNO: Obtener un CV específico
 # ---------------------------------------------------------
+# ---------------------------------------------------------
+# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
+# ---------------------------------------------------------
+@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
+def revelar_identidad(
+    perfil_ciego_id: str,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    payload = validar_token_y_obtener_rol(token)
+
+    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
+    if payload.get("rol") != "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
+        )
+
+    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+
+    # 📋 Auditoría: quién reveló qué y cuándo
+    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
+
+    return {
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "identidad_revelada_por": payload.get("sub"),
+        "texto_original_completo": cv.source_text,
+        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
+    }# ---------------------------------------------------------
+# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
+# ---------------------------------------------------------
+@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
+def revelar_identidad(
+    perfil_ciego_id: str,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    payload = validar_token_y_obtener_rol(token)
+
+    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
+    if payload.get("rol") != "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
+        )
+
+    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+
+    # 📋 Auditoría: quién reveló qué y cuándo
+    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
+
+    return {
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "identidad_revelada_por": payload.get("sub"),
+        "texto_original_completo": cv.source_text,
+        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
+    }# ---------------------------------------------------------
+# 🔓 REVELAR IDENTIDAD: Solo para rol Admin (con auditoría)
+# ---------------------------------------------------------
+@router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
+def revelar_identidad(
+    perfil_ciego_id: str,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    payload = validar_token_y_obtener_rol(token)
+
+    # 🔒 La seguridad REAL está aquí, no en el botón del frontend
+    if payload.get("rol") != "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso denegado. Solo un Administrador puede revelar identidades."
+        )
+
+    cv = db.query(CVDB).filter(CVDB.perfil_ciego_id == perfil_ciego_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+
+    # 📋 Auditoría: quién reveló qué y cuándo
+    print(f"🔓 AUDITORÍA | Admin: {payload.get('sub')} | Perfil: {perfil_ciego_id} | Hora: {datetime.utcnow()}")
+
+    return {
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "identidad_revelada_por": payload.get("sub"),
+        "texto_original_completo": cv.source_text,
+        "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
+    }
 @router.get("/cvs/{cv_id}")
 def obtener_cv_por_id(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
