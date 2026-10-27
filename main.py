@@ -153,13 +153,53 @@ def serve_frontend():
             }
 
             async function login() {
-                const user = document.getElementById('loginUser').value;
-                const pass = document.getElementById('loginPass').value;
-                const errorDiv = document.getElementById('loginError');
-                const formData = new URLSearchParams();
-                formData.append('username', user);
-                formData.append('password', pass);
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    const errorDiv = document.getElementById('loginError');
+    const loginBtn = document.querySelector('#loginSection button');
 
+    if (!user || !pass) {
+        errorDiv.textContent = "Por favor completa todos los campos.";
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    // 🔥 Mostrar estado de carga para que no parezca tildado
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Despertando servidor (espera ~50 seg)...';
+    errorDiv.classList.add('hidden');
+
+    const formData = new URLSearchParams();
+    formData.append('username', user);
+    formData.append('password', pass);
+
+    try {
+        const response = await fetch(`${API_URL}/usuarios/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        if (!response.ok) throw new Error("Credenciales incorrectas");
+        const data = await response.json();
+        token = data.access_token;
+        
+        const rol = obtenerRol();
+        document.getElementById('userRole').innerHTML = `<i class="fas fa-user-shield"></i> ${rol}`;
+        
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('mainDashboard').classList.remove('hidden');
+        document.getElementById('authStatus').classList.remove('hidden');
+        document.getElementById('authStatus').classList.add('flex');
+        
+    } catch (err) {
+        errorDiv.textContent = "❌ " + err.message;
+        errorDiv.classList.remove('hidden');
+        // 🔥 Restaurar botón si hay error
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Ingresar al Sistema';
+    }
+}
                 try {
                     const response = await fetch(`${API_URL}/usuarios/login`, {
                         method: 'POST',
