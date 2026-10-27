@@ -1,5 +1,5 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer  # 🔒 1. Importar el esquema de seguridad
+﻿from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -12,7 +12,6 @@ from app.models.cv import CVDB, SkillDB
 
 router = APIRouter()
 
-# 🔒 2. Decirle a FastAPI dónde se obtiene el token (en el login)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="usuarios/login")
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -32,17 +31,13 @@ def get_db():
         db.close()
 
 # ---------------------------------------------------------
-# 1. CREAR: Procesar CV con IA (OpenAI REAL)
+# FUNCIÓN AUXILIAR: Procesar CV en segundo plano
 # ---------------------------------------------------------
-@router.post("/cvs/procesar-ia")
-async def procesar_cv(
-    request: CVProcesarRequest, 
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)  # 🔒 3. Exigir el token aquí (¡Esto hace aparecer el candado!)
-):
-    texto_original = request.texto_cv
-    
+def procesar_cv_background(cv_id: int, texto_original: str):
+    """Esta función se ejecuta en segundo plano después de responder al usuario"""
+    db = SessionLocal()
     try:
+        # Llamar a OpenAI
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -70,36 +65,67 @@ async def procesar_cv(
         result_text = response.choices[0].message.content
         respuesta_ia = json.loads(result_text)
         
+        # Actualizar el CV en la base de datos
+        cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
+        if cv:
+            cv.redacted_text = respuesta_ia.get("texto_redactado", "")
+            cv.status = "procesado"
+            cv.redacted_count = max(0, len(texto_original) - len(respuesta_ia.get("texto_redactado", "")))
+            
+            # Guardar las skills
+            for skill_nombre in respuesta_ia.get("skills", []):
+                db.add(SkillDB(skill=skill_nombre, cv_id=cv.id))
+            
+            db.commit()
+            print(f"✅ CV {cv_id} procesado exitosamente en background")
+        
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Error al procesar con IA: {str(e)}"
-        )
+        print(f"❌ Error procesando CV {cv_id} en background: {str(e)}")
+        # Marcar como fallido
+        cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
+        if cv:
+            cv.status = "error"
+            db.commit()
+    finally:
+        db.close()
 
+# ---------------------------------------------------------
+# 1. CREAR: Procesar CV con Background Task (ASÍNCRONO)
+# ---------------------------------------------------------
+@router.post("/cvs/procesar-ia")
+async def procesar_cv(
+    request: CVProcesarRequest, 
+    background_tasks: BackgroundTasks,  # 🔥 Este parámetro mágico permite tareas en segundo plano
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    texto_original = request.texto_cv
+    
+    # Crear el CV inmediatamente con status "pendiente"
     nuevo_cv = CVDB(
         perfil_ciego_id=f"cv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
         source_text=texto_original,
-        redacted_text=respuesta_ia.get("texto_redactado", ""),
-        status="procesado",
-        redacted_count=max(0, len(texto_original) - len(respuesta_ia.get("texto_redactado", "")))
+        redacted_text="",  # Se llenará en background
+        status="pendiente",  # 🔥 Status inicial
+        redacted_count=0
     )
     db.add(nuevo_cv)
-    db.flush()
-
-    for skill_nombre in respuesta_ia.get("skills", []):
-        db.add(SkillDB(skill=skill_nombre, cv_id=nuevo_cv.id))
-
     db.commit()
     db.refresh(nuevo_cv)
-
+    
+    # 🔥 Lanzar la tarea en segundo plano
+    background_tasks.add_task(procesar_cv_background, nuevo_cv.id, texto_original)
+    
+    # Responder inmediatamente al usuario
     return {
-        "mensaje": "CV procesado y guardado con IA real", 
-        "cv_id": nuevo_cv.id, 
-        "skills_extraidas": respuesta_ia.get("skills", [])
+        "mensaje": "CV recibido y en proceso de análisis", 
+        "cv_id": nuevo_cv.id,
+        "status": "pendiente",
+        "nota": "El procesamiento con IA está ocurriendo en segundo plano. Consulta GET /cvs/ para ver el resultado cuando status sea 'procesado'."
     }
 
 # ---------------------------------------------------------
-# 2. LEER: Obtener todos los CVs
+# 2. LEER: Obtener todos los CVs (ahora muestra el status)
 # ---------------------------------------------------------
 @router.get("/cvs/")
 def obtener_todos_los_cvs(db: Session = Depends(get_db)):
@@ -112,13 +138,32 @@ def obtener_todos_los_cvs(db: Session = Depends(get_db)):
             "perfil_ciego_id": cv.perfil_ciego_id,
             "texto_original": cv.source_text,
             "texto_redactado": cv.redacted_text,
-            "status": cv.status,
+            "status": cv.status,  # 🔥 Ahora verás: "pendiente", "procesado" o "error"
             "skills": [s.skill for s in skills]
         })
     return resultado
 
 # ---------------------------------------------------------
-# 3. ACTUALIZAR: Modificar un CV existente (PUT)
+# 3. LEER UNO: Obtener un CV específico por ID
+# ---------------------------------------------------------
+@router.get("/cvs/{cv_id}")
+def obtener_cv_por_id(cv_id: int, db: Session = Depends(get_db)):
+    cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV no encontrado")
+    
+    skills = db.query(SkillDB).filter(SkillDB.cv_id == cv.id).all()
+    return {
+        "id": cv.id,
+        "perfil_ciego_id": cv.perfil_ciego_id,
+        "texto_original": cv.source_text,
+        "texto_redactado": cv.redacted_text,
+        "status": cv.status,
+        "skills": [s.skill for s in skills]
+    }
+
+# ---------------------------------------------------------
+# 4. ACTUALIZAR
 # ---------------------------------------------------------
 @router.put("/cvs/{cv_id}")
 def actualizar_cv(cv_id: int, request: CVUpdateRequest, db: Session = Depends(get_db)):
@@ -136,7 +181,7 @@ def actualizar_cv(cv_id: int, request: CVUpdateRequest, db: Session = Depends(ge
     return {"mensaje": "CV actualizado exitosamente", "cv": cv.id}
 
 # ---------------------------------------------------------
-# 4. ELIMINAR: Borrar un CV y sus skills asociadas (DELETE)
+# 5. ELIMINAR
 # ---------------------------------------------------------
 @router.delete("/cvs/{cv_id}")
 def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
