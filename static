@@ -28,7 +28,7 @@
             <div id="authStatus" class="hidden flex items-center space-x-2 bg-blue-800 px-3 py-1 rounded-full text-sm">
                 <i class="fas fa-check-circle text-green-400"></i>
                 <span>Sesión Activa</span>
-            </div are>
+            </div>
         </div>
     </header>
 
@@ -73,7 +73,7 @@
                 
                 <div id="redactedBox" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h3 class="font-semibold text-gray-700 mb-2">🔒 Texto con datos sensibles redactados:</h3>
-                    <p id="redactedText" class="text-sm text-gray-600 italic"></p “></p>
+                    <p id="redactedText" class="text-sm text-gray-600 italic"></p>
                 </div>
             </div>
             
@@ -88,7 +88,7 @@
 
     <script>
         let token = "";
-        const API_URL = "https://cv-api-1-ps8r.onrender.com"; // ¡Tu URL de Render!
+        const API_URL = "https://cv-api-1-ps8r.onrender.com";
 
         async function login() {
             const user = document.getElementById('loginUser').value;
@@ -103,7 +103,7 @@
 
             const formData = new URLSearchParams();
             formData.append('username', user);
-            formData.append('password', passPV);
+            formData.append('password', pass); // ✅ CORREGIDO
 
             try {
                 const response = await fetch(`${API_URL}/usuarios/login`, {
