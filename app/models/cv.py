@@ -10,6 +10,7 @@ class CVDB(Base):
     redacted_text = Column(Text)
     status = Column(String, default="pendiente")
     redacted_count = Column(Integer, default=0)
+    whatsapp = Column(String, nullable=True)  # Número de WhatsApp del candidato (opcional)
     
     skills = relationship("SkillDB", back_populates="cv", cascade="all, delete-orphan")
 

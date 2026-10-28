@@ -35,8 +35,9 @@ class CVProcesarRequest(BaseModel):
     texto_cv: str
 
 class CVUpdateRequest(BaseModel):
-    texto_cv: str | None = None
-    status: str | None = None
+  class CVProcesarRequest(BaseModel):
+    texto_cv: str
+    whatsapp: str | None = None  # 🔥 Campo nuevo opcional
 
 class BusquedaRequisitos(BaseModel):
     skills_requeridas: list[str]
@@ -168,26 +169,22 @@ async def procesar_cv(
 @router.post("/cvs/procesar-archivo")
 async def procesar_archivo_cv(
     file: UploadFile = File(...),
+    whatsapp: str = Form(None),  # 🔥 Campo nuevo opcional
     background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ):
-    try:
-        texto_extraido = extraer_texto_de_archivo(file)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al leer el archivo: {str(e)}")
-        
-    if not texto_extraido or len(texto_extraido.strip()) < 10:
-        raise HTTPException(status_code=400, detail="El archivo está vacío o no se pudo extraer texto legible.")
-
+    # ... (el resto del código igual hasta la creación del CV)
+    
     nuevo_cv = CVDB(
         perfil_ciego_id=f"cv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
         source_text=texto_extraido,
         redacted_text="",
         status="pendiente",
-        redacted_count=0
+        redacted_count=0,
+        whatsapp=whatsapp  # 🔥 Guardar WhatsApp
+    )
+)
     )
     db.add(nuevo_cv)
     db.commit()
@@ -218,6 +215,15 @@ def obtener_todos_los_cvs(db: Session = Depends(get_db)):
             "texto_redactado": cv.redacted_text,
             "status": cv.status,
             "skills": [s.skill for s in skills]
+            resultado.append({
+    "id": cv.id,
+    "perfil_ciego_id": cv.perfil_ciego_id,
+    "texto_original": cv.source_text,
+    "texto_redactado": cv.redacted_text,
+    "status": cv.status,
+    "skills": [s.skill for s in skills],
+    "whatsapp": cv.whatsapp  # 🔥 Agregar WhatsApp
+})
         })
     return resultado
 
@@ -244,9 +250,12 @@ def obtener_cv_por_id(cv_id: int, db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 @router.get("/cvs/perfil/{perfil_ciego_id}/identidad")
 def revelar_identidad(
-    perfil_ciego_id: str,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    return {
+    "perfil_ciego_id": cv.perfil_ciego_id,
+    "identidad_revelada_por": payload.get("sub"),
+    "texto_original_completo": cv.source_text,
+    "whatsapp": cv.whatsapp,  # 🔥 Agregar WhatsApp
+    "nota": "Acción registrada en la auditoría del sistema. Usa estos datos de forma responsable."
 ):
     payload = validar_token_y_obtener_rol(token)
 

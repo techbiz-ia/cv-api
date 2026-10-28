@@ -296,6 +296,13 @@ def serve_frontend():
                         <div class="glass-panel p-6 rounded-2xl">
                             <label class="block text-sm font-bold text-gray-300 mb-3">
                                 <i class="fas fa-paste mr-2 text-purple-400"></i>Opción B: Pegar texto
+                            <div class="glass-panel p-6 rounded-2xl">
+    <label class="block text-sm font-bold text-gray-300 mb-3">
+        <i class="fab fa-whatsapp mr-2 text-green-400"></i>WhatsApp del candidato (opcional)
+    </label>
+    <input type="text" id="cvWhatsapp" class="input-dark w-full p-4 rounded-xl outline-none" placeholder="+54 9 299 329 3669">
+    <p class="text-xs text-gray-500 mt-2">Se mostrará al revelar la identidad</p>
+</div>
                             </label>
                             <textarea id="cvText" rows="6" class="input-dark w-full p-4 rounded-xl outline-none text-sm resize-none" placeholder="Pega aquí el contenido del CV..."></textarea>
                         </div>
@@ -428,77 +435,34 @@ def serve_frontend():
             }
 
             async function procesarCV() {
-                const fileInput = document.getElementById('cvFile');
-                const textInput = document.getElementById('cvText');
-                const btn = document.getElementById('analyzeBtn');
-                const errorDiv = document.getElementById('analyzeError');
-                const resultSection = document.getElementById('resultSection');
-                const skillsContainer = document.getElementById('skillsContainer');
-                const redactedBox = document.getElementById('redactedBox');
-
-                const file = fileInput.files[0];
-                const texto = textInput.value.trim();
-
-                if (!file && !texto) {
-                    errorDiv.textContent = "Por favor, sube un archivo o pega el texto del CV.";
-                    errorDiv.classList.remove('hidden');
-                    return;
-                }
-
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando con IA...';
-                errorDiv.classList.add('hidden');
-                resultSection.classList.add('hidden');
-
-                try {
-                    let response;
-                    if (file) {
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        response = await fetch(API_URL + '/cvs/procesar-archivo', {
-                            method: 'POST',
-                            headers: { 'Authorization': 'Bearer ' + token },
-                            body: formData
-                        });
-                    } else {
-                        response = await fetch(API_URL + '/cvs/procesar-ia', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                            body: JSON.stringify({ texto_cv: texto })
-                        });
-                    }
-
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.detail || "Error al procesar");
-
-                    if (data.status === 'pendiente') {
-                        skillsContainer.innerHTML = '<p class="text-purple-400 font-bold text-lg"><i class="fas fa-clock mr-2"></i> ¡Archivo recibido! Procesando en segundo plano...</p>';
-                        redactedBox.classList.add('hidden');
-                    } else {
-                        skillsContainer.innerHTML = "";
-                        if (data.skills_extraidas && data.skills_extraidas.length > 0) {
-                            data.skills_extraidas.forEach(function(skill) {
-                                const tag = document.createElement('span');
-                                tag.className = 'skill-chip text-purple-300 px-4 py-2 rounded-full text-sm font-bold';
-                                tag.textContent = skill;
-                                skillsContainer.appendChild(tag);
-                            });
-                        }
-                        if (data.texto_redactado) {
-                            document.getElementById('redactedText').textContent = data.texto_redactado;
-                            redactedBox.classList.remove('hidden');
-                        }
-                    }
-                    resultSection.classList.remove('hidden');
-                } catch (err) {
-                    errorDiv.textContent = "❌ " + err.message;
-                    errorDiv.classList.remove('hidden');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-magic mr-2"></i> Procesar con IA';
-                }
-            }
-
+    // ... (código existente)
+    
+    const whatsappInput = document.getElementById('cvWhatsapp');
+    const whatsapp = whatsappInput.value.trim();
+    
+    // ... (validación existente)
+    
+    try {
+        let response;
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('whatsapp', whatsapp);  // 🔥 Agregar WhatsApp
+            response = await fetch(API_URL + '/cvs/procesar-archivo', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+        } else {
+            response = await fetch(API_URL + '/cvs/procesar-ia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ texto_cv: texto, whatsapp: whatsapp })  // 🔥 Agregar WhatsApp
+            });
+        }
+        // ... (resto del código igual)
+    }
+}
             async function buscarCandidatos() {
                 const skillsInput = document.getElementById('searchSkills').value;
                 const minMatch = parseInt(document.getElementById('searchMinMatch').value) || 50;
@@ -538,54 +502,28 @@ def serve_frontend():
                         return;
                     }
 
-                    data.candidatos.forEach(function(candidato, index) {
-                        const card = document.createElement('div');
-                        card.className = 'card-enter card-hover glass-panel p-8 rounded-3xl neon-border';
-                        card.style.animationDelay = (index * 0.1) + 's';
-                        
-                        const matchColor = candidato.match_porcentaje >= 80 ? 'from-green-500 to-emerald-600' : 'from-yellow-500 to-orange-600';
-                        
-                        let skillsHtml = candidato.skills_coincidentes.map(function(s) { 
-                            return '<span class="skill-chip text-green-300 px-3 py-1 rounded-full text-xs font-bold">' + s + '</span>'; 
-                        }).join('');
-                        
-                        let otherSkillsHtml = candidato.todas_las_skills_del_cv.filter(function(s) { 
-                            return candidato.skills_coincidentes.map(function(sc) { return sc.toLowerCase(); }).indexOf(s.toLowerCase()) === -1; 
-                        }).map(function(s) { 
-                            return '<span class="skill-chip text-gray-400 px-3 py-1 rounded-full text-xs font-bold">' + s + '</span>'; 
-                        }).join('');
-
-                        const adminButton = esAdmin 
-                            ? '<button onclick="revelarIdentidad(\\'' + candidato.perfil_ciego_id + '\\', this)" class="glow-button gradient-bg text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-xl"><i class="fas fa-unlock mr-2"></i> Revelar Identidad</button>'
-                            : '<span class="text-xs text-gray-500 font-bold"><i class="fas fa-lock mr-1"></i> Solo Admin</span>';
-
-                        card.innerHTML = 
-                            '<div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">' +
-                                '<div>' +
-                                    '<p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Perfil Ciego</p>' +
-                                    '<h4 class="font-black text-2xl gradient-text">' + candidato.perfil_ciego_id + '</h4>' +
-                                '</div>' +
-                                '<div class="match-badge bg-gradient-to-r ' + matchColor + ' text-white px-6 py-3 rounded-2xl text-lg font-black shadow-2xl">' +
-                                    candidato.match_porcentaje + '%<br><span class="text-xs font-bold">MATCH</span>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="mb-6">' +
-                                '<p class="text-xs text-gray-500 mb-3 uppercase tracking-wider font-bold">Skills que coinciden:</p>' +
-                                '<div class="flex flex-wrap gap-2 mb-4">' + (skillsHtml || '<span class="text-gray-500 text-sm">Ninguna</span>') + '</div>' +
-                                (otherSkillsHtml ? '<p class="text-xs text-gray-500 mb-3 uppercase tracking-wider font-bold mt-4">Otras skills:</p><div class="flex flex-wrap gap-2">' + otherSkillsHtml + '</div>' : '') +
-                            '</div>' +
-                            '<div class="glass-panel p-5 rounded-2xl mb-6">' +
-                                '<p class="text-xs text-gray-500 mb-2 uppercase tracking-wider font-bold">Perfil Redactado:</p>' +
-                                '<p class="text-sm text-gray-300 italic leading-relaxed">' + (candidato.cv_redactado || 'No disponible') + '</p>' +
-                            '</div>' +
-                            '<div class="flex items-center justify-between border-t border-gray-700 pt-4">' +
-                                '<span class="text-xs text-gray-500 font-bold"><i class="fas fa-user-shield mr-1"></i> Privacidad protegida</span>' +
-                                adminButton +
-                            '</div>' +
-                            '<div class="identity-box hidden mt-6 glass-panel p-6 rounded-2xl neon-border"></div>';
-                        
-                        resultsDiv.appendChild(card);
-                    });
+                  data.candidatos.forEach(function(candidato, index) {
+    // ... (código existente)
+    
+    // 🔥 Agregar botón de WhatsApp si existe
+    const whatsappButton = candidato.whatsapp 
+        ? '<a href="https://wa.me/' + candidato.whatsapp.replace(/[^0-9]/g, '') + '" target="_blank" class="glow-button bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-xl inline-flex items-center"><i class="fab fa-whatsapp mr-2 text-xl"></i> Contactar por WhatsApp</a>'
+        : '';
+    
+    // ... (resto del código de la tarjeta)
+    
+    // 🔥 Agregar el botón de WhatsApp antes del botón de revelar identidad
+    card.innerHTML = 
+        // ... (HTML existente)
+        '<div class="flex items-center justify-between border-t border-gray-700 pt-4 space-x-3">' +
+            '<span class="text-xs text-gray-500 font-bold"><i class="fas fa-user-shield mr-1"></i> Privacidad protegida</span>' +
+            '<div class="flex space-x-2">' +
+                whatsappButton +
+                adminButton +
+            '</div>' +
+        '</div>' +
+        // ... (resto del HTML)
+});
                 } catch (err) {
                     resultsDiv.classList.add('hidden');
                     errorDiv.textContent = "❌ " + err.message;
@@ -619,6 +557,17 @@ def serve_frontend():
                 }
             }
         </script>
-    </body>
+   <!-- Botón flotante de WhatsApp -->
+<div class="fixed bottom-8 right-8 z-50">
+    <a href="https://wa.me/5492993293669?text=Hola%2C%20quiero%20más%20información%20sobre%20Nexus%20Inclusivo" 
+       target="_blank" 
+       class="glow-button bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110">
+        <i class="fab fa-whatsapp text-3xl"></i>
+    </a>
+    <div class="absolute bottom-20 right-0 glass-panel p-3 rounded-xl text-xs text-gray-300 whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+        💬 ¿Necesitas ayuda?
+    </div>
+</div>
+     </body>
     </html>
     """
