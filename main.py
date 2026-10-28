@@ -35,21 +35,148 @@ def serve_frontend():
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
-body{background:linear-gradient(135deg,#0a0a0a,#1a1a2e,#16213e);min-height:100vh;color:#e0e0e0;font-family:system-ui,sans-serif}
-.panel{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:32px}
-.grad{background:linear-gradient(135deg,#667eea,#764ba2)}
-.gtext{background:linear-gradient(135deg,#8b9cf5,#c58bf0);-webkit-background-clip:text;color:transparent}
-.inp{width:100%;padding:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;outline:none}
-.inp:focus{border-color:#667eea}
-.btn{padding:14px 20px;border-radius:12px;font-weight:700;cursor:pointer;transition:.25s;border:none;color:#fff}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(102,126,234,.35)}
-.btn:disabled{opacity:.6;cursor:wait;transform:none}
-.chip{padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(102,126,234,.2);border:1px solid rgba(102,126,234,.35);margin:3px;display:inline-block}
-.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:26px;margin-top:20px;transition:.3s}
-.card:hover{transform:translateY(-5px);box-shadow:0 15px 40px rgba(102,126,234,.25)}
-.hidden{display:none!important}
-.wa{position:fixed;bottom:28px;right:28px;width:62px;height:62px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;box-shadow:0 8px 30px rgba(37,211,102,.45);z-index:99;transition:.25s;text-decoration:none}
-.wa:hover{transform:scale(1.1)}
+    /* Reset y base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        min-height: 100vh;
+        color: #e2e8f0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        line-height: 1.6;
+    }
+    
+    /* Paneles de vidrio (Glassmorphism) */
+    .panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Textos con gradiente */
+    .gtext {
+        background: linear-gradient(to right, #818cf8, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    /* Inputs modernos */
+    .inp {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 10px;
+        color: #f8fafc;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s ease;
+        margin-bottom: 16px;
+    }
+    .inp:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+    }
+    .inp::placeholder { color: #64748b; }
+
+    /* Botones */
+    .btn {
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .grad { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .grad:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+    
+    .bg-green-600 { background-color: #059669; }
+    .bg-green-600:hover { background-color: #047857; }
+    
+    .bg-gray-700 { background-color: #334155; }
+    .bg-gray-700:hover { background-color: #475569; }
+
+    /* Chips de habilidades */
+    .chip {
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #a5b4fc;
+        margin: 4px;
+        display: inline-block;
+    }
+
+    /* Tarjetas de candidatos */
+    .card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Utilidades */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-1 { flex: 1; }
+    .gap-3 { gap: 12px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mt-6 { margin-top: 24px; }
+    .text-center { text-align: center; }
+    .text-sm { font-size: 14px; }
+    .text-gray-400 { color: #94a3b8; }
+    .text-red-400 { color: #f87171; }
+    .text-green-400 { color: #4ade80; }
+    .text-purple-300 { color: #d8b4fe; }
+    .font-bold { font-weight: 700; }
+    .italic { font-style: italic; }
+
+    /* Botón flotante de WhatsApp */
+    .wa {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #25D366;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+        z-index: 999;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .wa:hover { transform: scale(1.1); box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6); }
 </style>
 </head>
 <body>
