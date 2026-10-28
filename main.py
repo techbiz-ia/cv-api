@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     print("✅ Tablas de base de datos verificadas y creadas.")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="1.0.0", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc")
+app = FastAPI(title="Nexus Inclusivo API", version="2.0.0", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -31,222 +31,326 @@ def serve_frontend():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Nexus Inclusivo | Reclutamiento con IA</title>
+        <title>Nexus Inclusivo | AI-Powered Recruitment</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
         <style>
-            .gradient-bg { 
-                background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            * { font-family: 'Inter', sans-serif; }
+            
+            body {
+                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+                color: #e0e0e0;
+                min-height: 100vh;
             }
-            .glass-panel { 
-                background: rgba(255, 255, 255, 0.98); 
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+            
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             }
-            .skill-tag { 
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                animation: fadeInUp 0.4s ease-out;
+            
+            .gradient-text {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
-            .skill-tag:hover { 
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            .neon-border {
+                border: 2px solid transparent;
+                background: linear-gradient(#0a0a0a, #0a0a0a) padding-box,
+                            linear-gradient(135deg, #667eea, #764ba2, #f093fb) border-box;
             }
-            .tab-active { 
-                border-bottom: 3px solid #2563eb; 
-                color: #2563eb; 
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-            .tab-inactive { 
-                border-bottom: 3px solid transparent; 
-                color: #6b7280;
-                transition: all 0.3s ease;
-            }
-            .tab-inactive:hover { 
-                color: #374151;
-                transform: translateY(-2px);
-            }
-            .card-enter {
-                animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .btn-primary {
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            .glow-button {
                 position: relative;
                 overflow: hidden;
+                transition: all 0.3s ease;
             }
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
+            
+            .glow-button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                transition: left 0.5s;
             }
-            .btn-primary:active {
-                transform: translateY(0);
+            
+            .glow-button:hover::before {
+                left: 100%;
             }
-            .skeleton {
-                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-                background-size: 200% 100%;
-                animation: loading 1.5s infinite;
+            
+            .glow-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
             }
+            
+            .card-hover {
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            
+            .card-hover:hover {
+                transform: translateY(-10px) scale(1.02);
+                box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            }
+            
+            .skill-chip {
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+                border: 1px solid rgba(102, 126, 234, 0.3);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                animation: slideIn 0.5s ease-out;
+            }
+            
+            .skill-chip:hover {
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
+                transform: scale(1.1) rotate(2deg);
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            }
+            
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            
             @keyframes fadeInUp {
                 from {
                     opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(40px);
                 }
                 to {
                     opacity: 1;
                     transform: translateY(0);
                 }
             }
-            @keyframes slideInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
+            
+            @keyframes pulse-glow {
+                0%, 100% {
+                    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
                 }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+                50% {
+                    box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
                 }
             }
+            
+            .match-badge {
+                animation: pulse-glow 2s ease-in-out infinite;
+            }
+            
+            .tab-active {
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+                border-bottom: 3px solid #667eea;
+                color: #667eea;
+                font-weight: 700;
+            }
+            
+            .tab-inactive {
+                border-bottom: 3px solid transparent;
+                color: #888;
+                transition: all 0.3s ease;
+            }
+            
+            .tab-inactive:hover {
+                color: #667eea;
+                background: rgba(102, 126, 234, 0.1);
+            }
+            
+            .input-dark {
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                color: #e0e0e0;
+                transition: all 0.3s ease;
+            }
+            
+            .input-dark:focus {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: #667eea;
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            }
+            
+            .input-dark::placeholder {
+                color: #666;
+            }
+            
+            .skeleton {
+                background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+                background-size: 200% 100%;
+                animation: loading 1.5s infinite;
+            }
+            
             @keyframes loading {
                 0% { background-position: 200% 0; }
                 100% { background-position: -200% 0; }
             }
+            
+            .icon-glow {
+                filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.6));
+            }
+            
             .fade-in {
-                animation: fadeIn 0.6s ease-out;
+                animation: fadeInUp 0.6s ease-out;
             }
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
+            
+            .card-enter {
+                animation: fadeInUp 0.5s ease-out;
             }
-            input:focus, textarea:focus {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.2);
+            
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             }
-            .match-badge {
-                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-            }
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: .8; }
+            
+            .text-glow {
+                text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
             }
         </style>
     </head>
-    <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans text-gray-800">
-        <header class="gradient-bg text-white p-6 shadow-lg">
-            <div class="max-w-5xl mx-auto flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-brain text-3xl animate-pulse"></i>
+    <body>
+        <header class="glass-panel border-b border-gray-800 p-6 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center icon-glow">
+                        <i class="fas fa-brain text-2xl text-white"></i>
+                    </div>
                     <div>
-                        <h1 class="text-2xl font-bold">Nexus Inclusivo</h1>
-                        <p class="text-blue-100 text-sm">Reclutamiento Inteligente y Ético con IA</p>
+                        <h1 class="text-2xl font-black gradient-text">NEXUS INCLUSIVO</h1>
+                        <p class="text-xs text-gray-400 font-medium">AI-Powered Ethical Recruitment</p>
                     </div>
                 </div>
-                <div id="authStatus" class="hidden items-center space-x-2 bg-blue-800 px-4 py-2 rounded-full text-sm shadow-lg">
-                    <i class="fas fa-user-shield text-green-400"></i>
-                    <span id="userRole" class="font-semibold">Sesión Activa</span>
-                    <button onclick="logout()" class="ml-3 text-blue-200 hover:text-white underline text-xs transition">Salir</button>
+                <div id="authStatus" class="hidden items-center space-x-3 glass-panel px-5 py-2 rounded-full">
+                    <i class="fas fa-user-shield text-green-400 icon-glow"></i>
+                    <span id="userRole" class="font-bold text-sm">Admin</span>
+                    <button onclick="logout()" class="ml-3 text-gray-400 hover:text-red-400 transition text-xs font-semibold">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Salir
+                    </button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-5xl mx-auto p-6 space-y-6">
-            <div id="loginSection" class="glass-panel p-8 rounded-2xl shadow-2xl border border-gray-200 max-w-md mx-auto mt-10 fade-in">
-                <h2 class="text-2xl font-bold mb-6 flex items-center text-gray-800">
-                    <i class="fas fa-lock mr-3 text-blue-600"></i> Iniciar Sesión
-                </h2>
+        <main class="max-w-6xl mx-auto p-8 space-y-8">
+            <div id="loginSection" class="glass-panel p-10 rounded-3xl neon-border max-w-md mx-auto mt-20 fade-in">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4 icon-glow">
+                        <i class="fas fa-lock text-3xl text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-black gradient-text mb-2">Acceso al Sistema</h2>
+                    <p class="text-gray-400 text-sm">Ingresa tus credenciales para continuar</p>
+                </div>
                 <div class="space-y-5">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Usuario</label>
-                        <input type="text" id="loginUser" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="Ej: AdminNuevo">
+                        <label class="block text-sm font-bold text-gray-300 mb-2">
+                            <i class="fas fa-user mr-2 text-purple-400"></i>Usuario
+                        </label>
+                        <input type="text" id="loginUser" class="input-dark w-full p-4 rounded-xl outline-none" placeholder="AdminNuevo">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
-                        <input type="password" id="loginPass" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="••••••••">
+                        <label class="block text-sm font-bold text-gray-300 mb-2">
+                            <i class="fas fa-key mr-2 text-purple-400"></i>Contraseña
+                        </label>
+                        <input type="password" id="loginPass" class="input-dark w-full p-4 rounded-xl outline-none" placeholder="••••••••">
                     </div>
-                    <button id="loginBtn" onclick="login()" class="btn-primary w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg">
+                    <button id="loginBtn" onclick="login()" class="glow-button w-full gradient-bg text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-2xl">
                         <i class="fas fa-sign-in-alt mr-2"></i> <span>Ingresar al Sistema</span>
                     </button>
-                    <p id="loginError" class="text-red-500 text-sm mt-3 hidden text-center font-medium"></p>
+                    <p id="loginError" class="text-red-400 text-sm mt-3 hidden text-center font-semibold"></p>
                 </div>
             </div>
 
             <div id="mainDashboard" class="hidden fade-in">
-                <div class="flex border-b-2 border-gray-200 mb-8 space-x-2">
-                    <button id="tab-analyze" onclick="showTab('analyze')" class="tab-active px-8 py-4 text-lg flex items-center space-x-3 rounded-t-xl">
-                        <i class="fas fa-file-alt text-xl"></i> <span class="font-semibold">Analizar Nuevo CV</span>
+                <div class="flex space-x-2 mb-8 glass-panel p-2 rounded-2xl">
+                    <button id="tab-analyze" onclick="showTab('analyze')" class="tab-active flex-1 px-6 py-4 text-base flex items-center justify-center space-x-3 rounded-xl transition-all">
+                        <i class="fas fa-file-alt text-xl"></i> <span class="font-bold">Analizar CV</span>
                     </button>
-                    <button id="tab-search" onclick="showTab('search')" class="tab-inactive px-8 py-4 text-lg flex items-center space-x-3 rounded-t-xl">
-                        <i class="fas fa-search text-xl"></i> <span class="font-semibold">Buscar Candidatos</span>
+                    <button id="tab-search" onclick="showTab('search')" class="tab-inactive flex-1 px-6 py-4 text-base flex items-center justify-center space-x-3 rounded-xl transition-all">
+                        <i class="fas fa-search text-xl"></i> <span class="font-bold">Buscar Candidatos</span>
                     </button>
                 </div>
 
-                <div id="analyzeSection" class="glass-panel p-8 rounded-2xl shadow-xl border border-gray-200">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Procesar Currículum con IA</h2>
+                <div id="analyzeSection" class="glass-panel p-10 rounded-3xl neon-border">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black gradient-text mb-2">Procesamiento con IA</h2>
+                        <p class="text-gray-400">Sube un archivo o pega el texto del currículum</p>
+                    </div>
                     <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                <i class="fas fa-upload mr-2 text-blue-600"></i>Opción A: Subir archivo (PDF, DOCX, TXT)
+                        <div class="glass-panel p-6 rounded-2xl">
+                            <label class="block text-sm font-bold text-gray-300 mb-3">
+                                <i class="fas fa-cloud-upload-alt mr-2 text-purple-400"></i>Opción A: Subir archivo
                             </label>
-                            <input type="file" id="cvFile" accept=".pdf,.docx,.txt" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer">
+                            <input type="file" id="cvFile" accept=".pdf,.docx,.txt" class="input-dark w-full p-4 rounded-xl text-sm file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
                         </div>
                         <div class="relative flex py-3 items-center">
-                            <div class="flex-grow border-t-2 border-gray-200"></div>
-                            <span class="flex-shrink-0 mx-4 text-gray-400 text-sm font-medium">O pega el texto</span>
-                            <div class="flex-grow border-t-2 border-gray-200"></div>
+                            <div class="flex-grow border-t border-gray-700"></div>
+                            <span class="flex-shrink-0 mx-4 text-gray-500 text-sm font-bold">O</span>
+                            <div class="flex-grow border-t border-gray-700"></div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                <i class="fas fa-paste mr-2 text-blue-600"></i>Opción B: Pegar texto del CV
+                        <div class="glass-panel p-6 rounded-2xl">
+                            <label class="block text-sm font-bold text-gray-300 mb-3">
+                                <i class="fas fa-paste mr-2 text-purple-400"></i>Opción B: Pegar texto
                             </label>
-                            <textarea id="cvText" rows="6" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all resize-none" placeholder="Ej: Ingeniero de Software con 4 años de experiencia..."></textarea>
+                            <textarea id="cvText" rows="6" class="input-dark w-full p-4 rounded-xl outline-none text-sm resize-none" placeholder="Pega aquí el contenido del CV..."></textarea>
                         </div>
                     </div>
-                    <button id="analyzeBtn" onclick="procesarCV()" class="btn-primary mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg">
+                    <button id="analyzeBtn" onclick="procesarCV()" class="glow-button mt-8 w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-2xl">
                         <i class="fas fa-magic mr-2"></i> <span>Procesar con IA</span>
                     </button>
 
-                    <div id="resultSection" class="hidden mt-8 space-y-4">
-                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-200 shadow-md">
-                            <h3 class="font-bold text-blue-900 mb-3 text-lg flex items-center">
-                                <i class="fas fa-bullseye mr-2"></i>🎯 Resultado:
+                    <div id="resultSection" class="hidden mt-8 space-y-5">
+                        <div class="glass-panel p-6 rounded-2xl neon-border">
+                            <h3 class="font-black text-xl gradient-text mb-4 flex items-center">
+                                <i class="fas fa-bullseye mr-3"></i>Habilidades Detectadas
                             </h3>
                             <div id="skillsContainer" class="flex flex-wrap gap-3"></div>
                         </div>
-                        <div id="redactedBox" class="hidden bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200 shadow-md">
-                            <h3 class="font-bold text-gray-800 mb-3 text-lg flex items-center">
-                                <i class="fas fa-shield-alt mr-2 text-gray-600"></i>🔒 Texto Redactado:
+                        <div id="redactedBox" class="hidden glass-panel p-6 rounded-2xl">
+                            <h3 class="font-black text-xl text-gray-200 mb-4 flex items-center">
+                                <i class="fas fa-shield-alt mr-3 text-purple-400"></i>Texto Redactado
                             </h3>
-                            <p id="redactedText" class="text-sm text-gray-700 italic leading-relaxed"></p>
+                            <p id="redactedText" class="text-sm text-gray-300 italic leading-relaxed"></p>
                         </div>
                     </div>
-                    <p id="analyzeError" class="text-red-500 text-sm mt-4 hidden text-center font-medium"></p>
+                    <p id="analyzeError" class="text-red-400 text-sm mt-4 hidden text-center font-semibold"></p>
                 </div>
 
-                <div id="searchSection" class="hidden glass-panel p-8 rounded-2xl shadow-xl border border-gray-200">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Búsqueda de Candidatos (Blind Hiring)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                <i class="fas fa-tags mr-2 text-purple-600"></i>Habilidades requeridas (separadas por coma)
+                <div id="searchSection" class="hidden glass-panel p-10 rounded-3xl neon-border">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black gradient-text mb-2">Búsqueda Inteligente</h2>
+                        <p class="text-gray-400">Encuentra candidatos con Blind Hiring</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="md:col-span-2 glass-panel p-6 rounded-2xl">
+                            <label class="block text-sm font-bold text-gray-300 mb-3">
+                                <i class="fas fa-tags mr-2 text-purple-400"></i>Habilidades requeridas
                             </label>
-                            <input type="text" id="searchSkills" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all" placeholder="Ej: Python, AWS, Docker">
+                            <input type="text" id="searchSkills" class="input-dark w-full p-4 rounded-xl outline-none" placeholder="Python, AWS, Docker, Machine Learning">
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                <i class="fas fa-percentage mr-2 text-purple-600"></i>Coincidencia mínima (%)
+                        <div class="glass-panel p-6 rounded-2xl">
+                            <label class="block text-sm font-bold text-gray-300 mb-3">
+                                <i class="fas fa-percentage mr-2 text-purple-400"></i>Match mínimo
                             </label>
-                            <input type="number" id="searchMinMatch" value="50" min="0" max="100" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                            <input type="number" id="searchMinMatch" value="50" min="0" max="100" class="input-dark w-full p-4 rounded-xl outline-none">
                         </div>
                     </div>
-                    <button onclick="buscarCandidatos()" class="btn-primary w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg">
+                    <button onclick="buscarCandidatos()" class="glow-button w-full gradient-bg text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center space-x-2 shadow-2xl">
                         <i class="fas fa-search mr-2"></i> <span>Buscar Candidatos</span>
                     </button>
-                    <div id="searchResults" class="hidden mt-8 space-y-5"></div>
-                    <p id="searchError" class="text-red-500 text-sm mt-4 hidden text-center font-medium"></p>
+                    <div id="searchResults" class="hidden mt-8 space-y-6"></div>
+                    <p id="searchError" class="text-red-400 text-sm mt-4 hidden text-center font-semibold"></p>
                 </div>
             </div>
         </main>
-        <footer class="text-center p-8 text-gray-500 text-sm font-medium">&copy; 2026 Nexus Inclusivo Core. Potenciado por IA.</footer>
+        <footer class="text-center p-8 text-gray-500 text-sm font-medium">
+            <p>&copy; 2026 Nexus Inclusivo. Powered by AI & Ethical Design.</p>
+        </footer>
 
         <script>
             let token = "";
@@ -255,10 +359,10 @@ def serve_frontend():
             function showTab(tabName) {
                 document.getElementById('analyzeSection').classList.add('hidden');
                 document.getElementById('searchSection').classList.add('hidden');
-                document.getElementById('tab-analyze').className = "tab-inactive px-8 py-4 text-lg flex items-center space-x-3 rounded-t-xl";
-                document.getElementById('tab-search').className = "tab-inactive px-8 py-4 text-lg flex items-center space-x-3 rounded-t-xl";
+                document.getElementById('tab-analyze').className = "tab-inactive flex-1 px-6 py-4 text-base flex items-center justify-center space-x-3 rounded-xl transition-all";
+                document.getElementById('tab-search').className = "tab-inactive flex-1 px-6 py-4 text-base flex items-center justify-center space-x-3 rounded-xl transition-all";
                 document.getElementById(tabName + 'Section').classList.remove('hidden');
-                document.getElementById('tab-' + tabName).className = "tab-active px-8 py-4 text-lg flex items-center space-x-3 rounded-t-xl";
+                document.getElementById('tab-' + tabName).className = "tab-active flex-1 px-6 py-4 text-base flex items-center justify-center space-x-3 rounded-xl transition-all";
             }
 
             async function login() {
@@ -274,7 +378,7 @@ def serve_frontend():
                 }
 
                 loginBtn.disabled = true;
-                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Despertando servidor (espera ~50 seg)...';
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Conectando...';
                 errorDiv.classList.add('hidden');
 
                 const formData = new URLSearchParams();
@@ -342,7 +446,7 @@ def serve_frontend():
                 }
 
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> <span>Procesando con IA...</span>';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando con IA...';
                 errorDiv.classList.add('hidden');
                 resultSection.classList.add('hidden');
 
@@ -368,14 +472,14 @@ def serve_frontend():
                     if (!response.ok) throw new Error(data.detail || "Error al procesar");
 
                     if (data.status === 'pendiente') {
-                        skillsContainer.innerHTML = '<p class="text-blue-700 font-semibold text-lg"><i class="fas fa-clock mr-2"></i> ¡Archivo recibido! Se está procesando en segundo plano.</p>';
+                        skillsContainer.innerHTML = '<p class="text-purple-400 font-bold text-lg"><i class="fas fa-clock mr-2"></i> ¡Archivo recibido! Procesando en segundo plano...</p>';
                         redactedBox.classList.add('hidden');
                     } else {
                         skillsContainer.innerHTML = "";
                         if (data.skills_extraidas && data.skills_extraidas.length > 0) {
                             data.skills_extraidas.forEach(function(skill) {
                                 const tag = document.createElement('span');
-                                tag.className = 'skill-tag bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md';
+                                tag.className = 'skill-chip text-purple-300 px-4 py-2 rounded-full text-sm font-bold';
                                 tag.textContent = skill;
                                 skillsContainer.appendChild(tag);
                             });
@@ -391,7 +495,7 @@ def serve_frontend():
                     errorDiv.classList.remove('hidden');
                 } finally {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-magic mr-2"></i> <span>Procesar con IA</span>';
+                    btn.innerHTML = '<i class="fas fa-magic mr-2"></i> Procesar con IA';
                 }
             }
 
@@ -415,7 +519,7 @@ def serve_frontend():
                     esAdmin = (payload.rol === "Admin");
                 } catch (e) {}
                 
-                resultsDiv.innerHTML = '<div class="text-center py-8"><div class="skeleton h-32 w-full rounded-xl mb-4"></div><div class="skeleton h-32 w-full rounded-xl"></div></div>';
+                resultsDiv.innerHTML = '<div class="space-y-4"><div class="skeleton h-40 w-full rounded-2xl"></div><div class="skeleton h-40 w-full rounded-2xl"></div></div>';
                 resultsDiv.classList.remove('hidden');
                 errorDiv.classList.add('hidden');
 
@@ -430,50 +534,55 @@ def serve_frontend():
 
                     resultsDiv.innerHTML = ""; 
                     if (data.total_encontrados === 0) {
-                        resultsDiv.innerHTML = '<p class="text-center text-gray-500 py-8 text-lg">No se encontraron candidatos con esos requisitos.</p>';
+                        resultsDiv.innerHTML = '<p class="text-center text-gray-500 py-12 text-lg">No se encontraron candidatos con esos requisitos.</p>';
                         return;
                     }
 
                     data.candidatos.forEach(function(candidato, index) {
                         const card = document.createElement('div');
-                        card.className = 'card-enter bg-white p-6 rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300';
+                        card.className = 'card-enter card-hover glass-panel p-8 rounded-3xl neon-border';
                         card.style.animationDelay = (index * 0.1) + 's';
                         
-                        const matchColor = candidato.match_porcentaje >= 80 ? 'from-green-500 to-green-600' : 'from-yellow-500 to-yellow-600';
+                        const matchColor = candidato.match_porcentaje >= 80 ? 'from-green-500 to-emerald-600' : 'from-yellow-500 to-orange-600';
                         
                         let skillsHtml = candidato.skills_coincidentes.map(function(s) { 
-                            return '<span class="skill-tag bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">' + s + '</span>'; 
+                            return '<span class="skill-chip text-green-300 px-3 py-1 rounded-full text-xs font-bold">' + s + '</span>'; 
                         }).join('');
                         
                         let otherSkillsHtml = candidato.todas_las_skills_del_cv.filter(function(s) { 
                             return candidato.skills_coincidentes.map(function(sc) { return sc.toLowerCase(); }).indexOf(s.toLowerCase()) === -1; 
                         }).map(function(s) { 
-                            return '<span class="skill-tag bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">' + s + '</span>'; 
+                            return '<span class="skill-chip text-gray-400 px-3 py-1 rounded-full text-xs font-bold">' + s + '</span>'; 
                         }).join('');
 
                         const adminButton = esAdmin 
-                            ? '<button onclick="revelarIdentidad(\\'' + candidato.perfil_ciego_id + '\\', this)" class="btn-primary bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2 rounded-lg transition-all shadow-md"><i class="fas fa-unlock mr-2"></i> Ver Identidad (Admin)</button>'
-                            : '<span class="text-xs text-gray-400 font-medium"><i class="fas fa-lock mr-1"></i> Solicita acceso a RR.HH.</span>';
+                            ? '<button onclick="revelarIdentidad(\\'' + candidato.perfil_ciego_id + '\\', this)" class="glow-button gradient-bg text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-xl"><i class="fas fa-unlock mr-2"></i> Revelar Identidad</button>'
+                            : '<span class="text-xs text-gray-500 font-bold"><i class="fas fa-lock mr-1"></i> Solo Admin</span>';
 
                         card.innerHTML = 
-                            '<div class="flex justify-between items-start mb-4 border-b-2 border-gray-100 pb-3">' +
-                                '<h4 class="font-bold text-xl text-gray-800">ID: ' + candidato.perfil_ciego_id + '</h4>' +
-                                '<span class="match-badge bg-gradient-to-r ' + matchColor + ' text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">' + candidato.match_porcentaje + '% Match</span>' +
+                            '<div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">' +
+                                '<div>' +
+                                    '<p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Perfil Ciego</p>' +
+                                    '<h4 class="font-black text-2xl gradient-text">' + candidato.perfil_ciego_id + '</h4>' +
+                                '</div>' +
+                                '<div class="match-badge bg-gradient-to-r ' + matchColor + ' text-white px-6 py-3 rounded-2xl text-lg font-black shadow-2xl">' +
+                                    candidato.match_porcentaje + '%<br><span class="text-xs font-bold">MATCH</span>' +
+                                '</div>' +
                             '</div>' +
-                            '<div class="mb-4">' +
-                                '<p class="text-xs text-gray-500 mb-2 uppercase tracking-wide font-bold">Habilidades que coinciden:</p>' +
-                                '<div class="flex flex-wrap gap-2 mb-3">' + (skillsHtml || '<span class="text-gray-400 text-sm">Ninguna</span>') + '</div>' +
-                                (otherSkillsHtml ? '<p class="text-xs text-gray-500 mb-2 uppercase tracking-wide font-bold mt-3">Otras habilidades:</p><div class="flex flex-wrap gap-2">' + otherSkillsHtml + '</div>' : '') +
+                            '<div class="mb-6">' +
+                                '<p class="text-xs text-gray-500 mb-3 uppercase tracking-wider font-bold">Skills que coinciden:</p>' +
+                                '<div class="flex flex-wrap gap-2 mb-4">' + (skillsHtml || '<span class="text-gray-500 text-sm">Ninguna</span>') + '</div>' +
+                                (otherSkillsHtml ? '<p class="text-xs text-gray-500 mb-3 uppercase tracking-wider font-bold mt-4">Otras skills:</p><div class="flex flex-wrap gap-2">' + otherSkillsHtml + '</div>' : '') +
                             '</div>' +
-                            '<div class="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border-2 border-gray-200">' +
-                                '<p class="text-xs text-gray-500 mb-2 uppercase tracking-wide font-bold">Perfil Redactado (Anónimo):</p>' +
-                                '<p class="text-sm text-gray-700 italic leading-relaxed">' + (candidato.cv_redactado || 'No disponible') + '</p>' +
+                            '<div class="glass-panel p-5 rounded-2xl mb-6">' +
+                                '<p class="text-xs text-gray-500 mb-2 uppercase tracking-wider font-bold">Perfil Redactado:</p>' +
+                                '<p class="text-sm text-gray-300 italic leading-relaxed">' + (candidato.cv_redactado || 'No disponible') + '</p>' +
                             '</div>' +
-                            '<div class="mt-5 flex items-center justify-between border-t-2 border-gray-100 pt-4">' +
-                                '<span class="text-xs text-gray-500 font-medium"><i class="fas fa-user-shield mr-1"></i> Datos protegidos por privacidad</span>' +
+                            '<div class="flex items-center justify-between border-t border-gray-700 pt-4">' +
+                                '<span class="text-xs text-gray-500 font-bold"><i class="fas fa-user-shield mr-1"></i> Privacidad protegida</span>' +
                                 adminButton +
                             '</div>' +
-                            '<div class="identity-box hidden mt-5 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 p-5 rounded-xl shadow-lg"></div>';
+                            '<div class="identity-box hidden mt-6 glass-panel p-6 rounded-2xl neon-border"></div>';
                         
                         resultsDiv.appendChild(card);
                     });
@@ -485,9 +594,9 @@ def serve_frontend():
             }
 
             async function revelarIdentidad(perfilId, boton) {
-                const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
+                const contenedor = boton.closest('.glass-panel').querySelector('.identity-box');
                 contenedor.classList.remove('hidden');
-                contenedor.innerHTML = '<p class="text-sm text-blue-700 font-semibold"><i class="fas fa-spinner fa-spin mr-2"></i> Verificando permisos...</p>';
+                contenedor.innerHTML = '<p class="text-sm text-purple-400 font-bold"><i class="fas fa-spinner fa-spin mr-2"></i> Verificando permisos...</p>';
 
                 try {
                     const response = await fetch(API_URL + '/cvs/perfil/' + encodeURIComponent(perfilId) + '/identidad', {
@@ -498,15 +607,15 @@ def serve_frontend():
                     if (!response.ok) throw new Error(data.detail || "Acceso denegado");
 
                     contenedor.innerHTML = 
-                        '<h5 class="text-lg font-bold text-blue-900 mb-3 flex items-center"><i class="fas fa-unlock mr-2"></i> Identidad Revelada (Acción Auditada)</h5>' +
-                        '<p class="text-xs text-gray-600 mb-3 font-semibold">Revelado por: <strong class="text-blue-700">' + data.identidad_revelada_por + '</strong></p>' +
-                        '<pre class="text-xs text-gray-800 whitespace-pre-wrap bg-white p-4 rounded-lg border-2 border-blue-200 shadow-inner leading-relaxed">' + data.texto_original_completo + '</pre>';
+                        '<h5 class="text-xl font-black gradient-text mb-4 flex items-center"><i class="fas fa-unlock mr-3"></i> Identidad Revelada</h5>' +
+                        '<p class="text-xs text-gray-400 mb-4 font-bold">Auditado por: <strong class="text-purple-400">' + data.identidad_revelada_por + '</strong></p>' +
+                        '<pre class="text-xs text-gray-300 whitespace-pre-wrap bg-black bg-opacity-30 p-5 rounded-xl border border-gray-700 leading-relaxed">' + data.texto_original_completo + '</pre>';
                     
                     boton.disabled = true;
-                    boton.innerHTML = '<i class="fas fa-check mr-2"></i> Identidad Revelada';
-                    boton.className = 'bg-green-600 text-white text-sm font-bold px-5 py-2 rounded-lg shadow-md cursor-not-allowed';
+                    boton.innerHTML = '<i class="fas fa-check mr-2"></i> Revelado';
+                    boton.className = 'bg-green-600 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-xl cursor-not-allowed';
                 } catch (err) {
-                    contenedor.innerHTML = '<p class="text-sm text-red-600 font-semibold">🔒 ' + err.message + '</p>';
+                    contenedor.innerHTML = '<p class="text-sm text-red-400 font-bold">🔒 ' + err.message + '</p>';
                 }
             }
         </script>
