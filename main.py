@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     print("Tablas verificadas.")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="2.3.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="4.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -31,121 +31,319 @@ def serve_frontend():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Inclusivo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Nexus Inclusivo v4.0 - AI Recruitment Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=4.0">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
-            color: #e2e8f0;
-            line-height: 1.6;
+            color: #e0e0e0;
+            position: relative;
+            overflow-x: hidden;
         }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(240, 147, 251, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
         .header {
-            background: rgba(15, 23, 42, 0.9);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-            padding: 20px 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2, #f093fb) 1;
+            padding: 24px 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
-        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+        
         .flex { display: flex; align-items: center; }
         .justify-between { justify-content: space-between; }
-        .gap-3 { gap: 12px; }
-        .gtext {
-            background: linear-gradient(to right, #818cf8, #c084fc);
+        .gap-3 { gap: 16px; }
+        
+        .logo-box {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .logo-box i { color: white; font-size: 28px; }
+        
+        .brand-title {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            font-size: 24px;
+            background-clip: text;
+            margin: 0;
         }
+        
+        .brand-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        
+        .auth-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            padding: 10px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .auth-badge i { color: #4ade80; font-size: 20px; }
+        .auth-badge span { font-weight: 700; font-size: 15px; }
+        
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+        
         .panel {
             background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 16px;
-            padding: 32px;
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+            border-radius: 24px;
+            padding: 40px;
             margin-top: 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
         }
-        .inp {
+        
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea);
+            border-radius: 24px;
+            z-index: -1;
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .input-field {
             width: 100%;
-            padding: 14px 16px;
+            padding: 16px 20px;
             background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 10px;
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
             color: #f8fafc;
             font-size: 15px;
             outline: none;
-            margin-bottom: 16px;
-            transition: border-color 0.3s;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
-        .inp:focus { border-color: #818cf8; }
-        .btn {
-            padding: 14px 24px;
-            border-radius: 10px;
+        
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 20px rgba(102, 126, 234, 0.4);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .input-field::placeholder { color: #64748b; }
+        
+        .button {
+            padding: 16px 28px;
+            border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
             border: none;
             color: white;
             width: 100%;
             text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-size: 15px;
+            letter-spacing: 0.5px;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .grad { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-        .green { background: #059669; }
-        .green:hover { background: #047857; }
-        .gray { background: #334155; }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .button:hover::before { width: 300px; height: 300px; }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+        }
+        
+        .button:active { transform: translateY(-1px); }
+        .button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .button-secondary {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        }
+        
         .hidden { display: none !important; }
-        .text-sm { font-size: 14px; }
-        .text-gray-400 { color: #94a3b8; }
-        .text-red-400 { color: #f87171; }
+        
+        .text-muted { color: #94a3b8; font-size: 14px; }
+        .text-error { color: #f87171; font-size: 14px; }
         .text-center { text-align: center; }
         .mb-4 { margin-bottom: 16px; }
         .mb-6 { margin-bottom: 24px; }
         .mt-6 { margin-top: 24px; }
         
-        /* Botón flotante de WhatsApp */
-        .wa-float {
+        .whatsapp-float {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 65px;
-            height: 65px;
+            bottom: 30px; right: 30px;
+            width: 70px; height: 70px;
             border-radius: 50%;
-            background: #25D366;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 34px;
-            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
+            font-size: 36px;
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
             z-index: 9999;
             transition: all 0.3s ease;
             text-decoration: none;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        .wa-float:hover { transform: scale(1.1); box-shadow: 0 12px 30px rgba(37, 211, 102, 0.7); }
         
-        .card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 16px;
-            padding: 24px;
-            margin-top: 20px;
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6), 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6), 0 0 0 20px rgba(37, 211, 102, 0);
+            }
         }
-        .chip {
+        
+        .whatsapp-float:hover {
+            transform: scale(1.15) rotate(8deg);
+            box-shadow: 0 12px 40px rgba(37, 211, 102, 0.8);
+        }
+        
+        .candidate-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(148, 163, 184, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            margin-top: 24px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .candidate-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+        }
+        
+        .skill-chip {
             display: inline-block;
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            font-size: 13px;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 2px solid rgba(102, 126, 234, 0.4);
             color: #a5b4fc;
-            margin: 4px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-chip:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+        
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -153,74 +351,117 @@ def serve_frontend():
     <header class="header">
         <div class="container flex justify-between">
             <div class="flex gap-3">
-                <div style="width:45px;height:45px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-brain text-xl" style="color:white;"></i>
+                <div class="logo-box">
+                    <i class="fas fa-brain"></i>
                 </div>
                 <div>
-                    <h1 class="gtext" style="font-size:22px;margin:0;">NEXUS INCLUSIVO</h1>
-                    <p class="text-sm text-gray-400" style="margin:0;">AI-Powered Ethical Recruitment</p>
+                    <h1 class="brand-title">NEXUS INCLUSIVO</h1>
+                    <p class="brand-subtitle">AI-Powered Ethical Recruitment Platform v4.0</p>
                 </div>
             </div>
-            <div id="authStatus" class="hidden flex gap-3" style="align-items:center;">
-                <i class="fas fa-user-shield" style="color:#4ade80;"></i>
-                <span id="userRole" style="font-weight:700;">Admin</span>
-                <button onclick="logout()" style="background:none;border:none;color:#94a3b8;cursor:pointer;text-decoration:underline;">Salir</button>
+            <div id="authStatus" class="hidden">
+                <div class="auth-badge">
+                    <i class="fas fa-user-shield"></i>
+                    <span id="userRole">Admin</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
     <main class="container">
-        <section id="loginSection" class="panel" style="max-width:450px;margin:60px auto;">
-            <h2 class="gtext mb-4" style="text-align:center;">Acceso al Sistema</h2>
-            <p class="text-sm text-gray-400 mb-6" style="text-align:center;">Ingresa tus credenciales</p>
-            <input id="loginUser" class="inp" placeholder="Usuario">
-            <input id="loginPass" class="inp" type="password" placeholder="Contraseña">
-            <button id="loginBtn" class="btn grad" onclick="login()">Ingresar al Sistema</button>
-            <p id="loginError" class="hidden text-sm text-red-400 mt-6 text-center"></p>
+        <section id="loginSection" class="panel" style="max-width:500px;margin:80px auto;">
+            <div class="text-center mb-6">
+                <div class="icon-circle" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <i class="fas fa-lock" style="color:white;font-size:32px;"></i>
+                </div>
+                <h2 class="section-title">Acceso al Sistema</h2>
+                <p class="text-muted">Ingresa tus credenciales para continuar</p>
+            </div>
+            <input id="loginUser" class="input-field" placeholder="Usuario">
+            <input id="loginPass" class="input-field" type="password" placeholder="Contraseña">
+            <button id="loginBtn" class="button button-primary" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Ingresar al Sistema
+            </button>
+            <p id="loginError" class="hidden text-error mt-6 text-center"></p>
         </section>
 
         <section id="dashboard" class="hidden">
-            <div class="flex gap-3 mb-6" style="margin-bottom:30px;">
-                <button id="tab-analyze" class="btn grad" onclick="showTab('analyze')" style="flex:1;">Analizar CV</button>
-                <button id="tab-search" class="btn gray" onclick="showTab('search')" style="flex:1;">Buscar Candidatos</button>
+            <div class="flex gap-3 mb-6">
+                <button id="tab-analyze" class="button button-primary" onclick="showTab('analyze')" style="flex:1;">
+                    <i class="fas fa-file-alt"></i> Analizar CV
+                </button>
+                <button id="tab-search" class="button button-secondary" onclick="showTab('search')" style="flex:1;">
+                    <i class="fas fa-search"></i> Buscar Candidatos
+                </button>
             </div>
 
             <div id="analyzeSection" class="panel">
-                <h2 class="gtext mb-6">Procesamiento con IA</h2>
-                <label class="text-sm text-gray-400 mb-4" style="display:block;margin-bottom:8px;">Archivo (PDF, DOCX, TXT)</label>
-                <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="inp mb-4" style="padding:10px;">
+                <div class="text-center mb-6">
+                    <div class="icon-circle" style="background:linear-gradient(135deg,#10b981,#059669);">
+                        <i class="fas fa-magic" style="color:white;font-size:28px;"></i>
+                    </div>
+                    <h2 class="section-title">Procesamiento con IA</h2>
+                    <p class="text-muted">Sube un archivo o pega el texto del currículum</p>
+                </div>
                 
-                <label class="text-sm text-gray-400 mb-4" style="display:block;margin-bottom:8px;">
-                    <i class="fab fa-whatsapp" style="color:#4ade80;"></i> WhatsApp del candidato (opcional)
+                <label class="text-muted mb-4" style="display:block;font-weight:600;">
+                    <i class="fas fa-cloud-upload-alt" style="color:#667eea;"></i> Archivo (PDF, DOCX, TXT)
                 </label>
-                <input id="cvWhatsapp" class="inp mb-4" placeholder="+54 9 299 329 3669">
+                <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input-field" style="padding:12px;">
                 
-                <label class="text-sm text-gray-400 mb-4" style="display:block;margin-bottom:8px;">O pega el texto del CV</label>
-                <textarea id="cvText" rows="5" class="inp mb-4"></textarea>
+                <label class="text-muted mb-4" style="display:block;font-weight:600;">
+                    <i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp del candidato (opcional)
+                </label>
+                <input id="cvWhatsapp" class="input-field" placeholder="+54 9 299 329 3669">
                 
-                <button id="analyzeBtn" class="btn green" onclick="procesarCV()">Procesar con IA</button>
-                <p id="analyzeError" class="hidden text-sm text-red-400 mt-6 text-center"></p>
-                <div id="analyzeResult" class="hidden mt-6 text-sm text-center" style="color:#d8b4fe;"></div>
+                <label class="text-muted mb-4" style="display:block;font-weight:600;">
+                    <i class="fas fa-paste" style="color:#667eea;"></i> O pega el texto del CV
+                </label>
+                <textarea id="cvText" rows="6" class="input-field" style="resize:none;"></textarea>
+                
+                <button id="analyzeBtn" class="button button-success" onclick="procesarCV()">
+                    <i class="fas fa-magic"></i> Procesar con IA
+                </button>
+                <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
+                <div id="analyzeResult" class="hidden mt-6 text-center" style="color:#a5b4fc;font-weight:600;"></div>
             </div>
 
             <div id="searchSection" class="panel hidden">
-                <h2 class="gtext mb-6">Búsqueda de Candidatos</h2>
-                <label class="text-sm text-gray-400 mb-4" style="display:block;margin-bottom:8px;">Habilidades (separadas por coma)</label>
-                <input id="searchSkills" class="inp mb-4" placeholder="Python, FastAPI">
-                <label class="text-sm text-gray-400 mb-4" style="display:block;margin-bottom:8px;">Match mínimo (%)</label>
-                <input id="searchMinMatch" type="number" value="50" class="inp mb-4">
-                <button class="btn grad" onclick="buscarCandidatos()">Buscar Candidatos</button>
-                <p id="searchError" class="hidden text-sm text-red-400 mt-6 text-center"></p>
+                <div class="text-center mb-6">
+                    <div class="icon-circle" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                        <i class="fas fa-search" style="color:white;font-size:28px;"></i>
+                    </div>
+                    <h2 class="section-title">Búsqueda de Candidatos</h2>
+                    <p class="text-muted">Encuentra candidatos con Blind Hiring</p>
+                </div>
+                
+                <label class="text-muted mb-4" style="display:block;font-weight:600;">
+                    <i class="fas fa-tags" style="color:#667eea;"></i> Habilidades (separadas por coma)
+                </label>
+                <input id="searchSkills" class="input-field" placeholder="Python, FastAPI, AWS">
+                
+                <label class="text-muted mb-4" style="display:block;font-weight:600;">
+                    <i class="fas fa-percentage" style="color:#667eea;"></i> Match mínimo (%)
+                </label>
+                <input id="searchMinMatch" type="number" value="50" class="input-field">
+                
+                <button class="button button-primary" onclick="buscarCandidatos()">
+                    <i class="fas fa-search"></i> Buscar Candidatos
+                </button>
+                <p id="searchError" class="hidden text-error mt-6 text-center"></p>
                 <div id="searchResults" class="mt-6"></div>
             </div>
         </section>
     </main>
 
-    <a class="wa-float" href="https://wa.me/5492993293669?text=Hola,%20quiero%20informacion%20sobre%20Nexus%20Inclusivo" target="_blank" title="Contacto por WhatsApp">
+    <a class="whatsapp-float" href="https://wa.me/5492993293669?text=Hola,%20quiero%20informacion%20sobre%20Nexus%20Inclusivo" target="_blank" title="Contacto por WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
     
-    <footer class="text-center text-sm text-gray-400" style="padding:40px 0;">
+    <footer class="text-center text-muted" style="padding:40px 0;position:relative;z-index:1;">
         © 2026 Nexus Inclusivo · Powered by AI & Ethical Design
     </footer>
 
@@ -232,8 +473,8 @@ def serve_frontend():
             document.getElementById('analyzeSection').classList.add('hidden');
             document.getElementById('searchSection').classList.add('hidden');
             document.getElementById(name + 'Section').classList.remove('hidden');
-            document.getElementById('tab-analyze').className = name === 'analyze' ? 'btn grad' : 'btn gray';
-            document.getElementById('tab-search').className = name === 'search' ? 'btn grad' : 'btn gray';
+            document.getElementById('tab-analyze').className = name === 'analyze' ? 'button button-primary' : 'button button-secondary';
+            document.getElementById('tab-search').className = name === 'search' ? 'button button-primary' : 'button button-secondary';
             document.getElementById('tab-analyze').style.flex = '1';
             document.getElementById('tab-search').style.flex = '1';
         }
@@ -255,7 +496,7 @@ def serve_frontend():
                 return;
             }
             btn.disabled = true;
-            btn.textContent = 'Conectando... (espera 50s)';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando... (espera 50s)';
             var body = new URLSearchParams();
             body.append('username', user);
             body.append('password', pass);
@@ -277,7 +518,7 @@ def serve_frontend():
                 err.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Ingresar al Sistema';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar al Sistema';
             }
         }
 
@@ -303,7 +544,7 @@ def serve_frontend():
                 return;
             }
             btn.disabled = true;
-            btn.textContent = 'Procesando...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
             try {
                 var res;
                 if (file) {
@@ -331,7 +572,7 @@ def serve_frontend():
                 err.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Procesar con IA';
+                btn.innerHTML = '<i class="fas fa-magic"></i> Procesar con IA';
             }
         }
 
@@ -347,7 +588,7 @@ def serve_frontend():
                 return;
             }
             var skills = raw.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
-            box.innerHTML = '<p class="text-gray-400 mt-6 text-center">Buscando...</p>';
+            box.innerHTML = '<p class="text-muted mt-6 text-center" style="font-size:18px;"><i class="fas fa-spinner fa-spin"></i> Buscando candidatos...</p>';
             try {
                 var res = await fetch(API_URL + '/cvs/buscar-candidatos', {
                     method: 'POST',
@@ -358,25 +599,28 @@ def serve_frontend():
                 if (!res.ok) throw new Error(data.detail || 'Error al buscar');
                 box.innerHTML = '';
                 if (!data.total_encontrados) {
-                    box.innerHTML = '<p class="text-gray-400 mt-6 text-center">No se encontraron candidatos.</p>';
+                    box.innerHTML = '<p class="text-muted mt-6 text-center" style="font-size:18px;">No se encontraron candidatos.</p>';
                     return;
                 }
                 var admin = getRole() === 'Admin';
                 data.candidatos.forEach(function (c) {
                     var card = document.createElement('div');
-                    card.className = 'card';
-                    var waBtn = c.whatsapp ? '<a class="btn green text-sm" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '" style="width:auto;padding:10px 16px;"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
-                    var revealBtn = admin ? '<button class="btn grad text-sm reveal-btn" style="width:auto;padding:10px 16px;">Revelar Identidad</button>' : '<span class="text-sm text-gray-400">Solo Admin</span>';
+                    card.className = 'candidate-card';
+                    var waBtn = c.whatsapp ? '<a class="button button-success" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '" style="width:auto;padding:12px 20px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;"><i class="fab fa-whatsapp" style="font-size:18px;"></i> WhatsApp</a>' : '';
+                    var revealBtn = admin ? '<button class="button button-primary reveal-btn" style="width:auto;padding:12px 20px;"><i class="fas fa-unlock"></i> Revelar Identidad</button>' : '<span class="text-muted" style="font-weight:600;"><i class="fas fa-lock"></i> Solo Admin</span>';
                     
                     card.innerHTML =
-                        '<div class="flex justify-between mb-4" style="border-bottom:1px solid rgba(148,163,184,0.1);padding-bottom:16px;">' +
-                            '<h3 class="gtext" style="font-size:20px;">' + c.perfil_ciego_id + '</h3>' +
-                            '<span class="chip" style="background:rgba(74,222,128,0.15);border-color:rgba(74,222,128,0.3);color:#4ade80;">' + c.match_porcentaje + '% MATCH</span>' +
+                        '<div class="flex justify-between mb-4" style="border-bottom:2px solid rgba(148,163,184,0.1);padding-bottom:20px;">' +
+                            '<h3 class="section-title" style="font-size:24px;margin:0;">' + c.perfil_ciego_id + '</h3>' +
+                            '<span class="skill-chip" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(5,150,105,0.2));border-color:rgba(16,185,129,0.5);color:#4ade80;font-size:14px;font-weight:800;">' + c.match_porcentaje + '% MATCH</span>' +
                         '</div>' +
-                        '<div class="mb-4">' + (c.skills_coincidentes || []).map(function (s) { return '<span class="chip">' + s + '</span>'; }).join('') + '</div>' +
-                        '<p class="text-sm text-gray-400 mb-4" style="background:rgba(0,0,0,0.2);padding:16px;border-radius:10px;font-style:italic;">' + (c.cv_redactado || 'Sin perfil redactado') + '</p>' +
-                        '<div class="flex gap-3" style="align-items:center;">' + waBtn + revealBtn + '</div>' +
-                        '<div class="identity-box hidden mt-6" style="background:rgba(0,0,0,0.3);padding:16px;border-radius:10px;font-size:13px;"></div>';
+                        '<div class="mb-4">' +
+                            '<p class="text-muted" style="margin-bottom:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:12px;">Habilidades que coinciden:</p>' +
+                            '<div>' + (c.skills_coincidentes || []).map(function (s) { return '<span class="skill-chip">' + s + '</span>'; }).join('') + '</div>' +
+                        '</div>' +
+                        '<p class="text-muted mb-4" style="background:rgba(0,0,0,0.3);padding:20px;border-radius:12px;font-style:italic;border-left:4px solid #667eea;line-height:1.8;">' + (c.cv_redactado || 'Sin perfil redactado') + '</p>' +
+                        '<div class="flex gap-3" style="align-items:center;gap:12px;margin-top:24px;">' + waBtn + revealBtn + '</div>' +
+                        '<div class="identity-box hidden mt-6" style="background:rgba(0,0,0,0.4);padding:20px;border-radius:12px;font-size:13px;margin-top:24px;border:2px solid rgba(102,126,234,0.3);"></div>';
                     box.appendChild(card);
                     
                     var rb = card.querySelector('.reveal-btn');
@@ -391,9 +635,9 @@ def serve_frontend():
         }
 
         async function revelarIdentidad(id, btn) {
-            var box = btn.closest('.card').querySelector('.identity-box');
+            var box = btn.closest('.candidate-card').querySelector('.identity-box');
             box.classList.remove('hidden');
-            box.textContent = 'Verificando permisos...';
+            box.innerHTML = '<p style="color:#a5b4fc;"><i class="fas fa-spinner fa-spin"></i> Verificando permisos...</p>';
             try {
                 var res = await fetch(API_URL + '/cvs/perfil/' + encodeURIComponent(id) + '/identidad', {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -401,21 +645,21 @@ def serve_frontend():
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Acceso denegado');
                 
-                var html = '<p style="color:#d8b4fe;font-weight:700;margin-bottom:12px;">Identidad revelada por: ' + data.identidad_revelada_por + '</p>';
+                var html = '<p style="color:#a5b4fc;font-weight:800;margin-bottom:16px;font-size:16px;"><i class="fas fa-unlock"></i> Identidad revelada por: ' + data.identidad_revelada_por + '</p>';
                 if (data.whatsapp) {
-                    html += '<p style="color:#4ade80;margin-bottom:12px;font-weight:700;"><i class="fab fa-whatsapp"></i> WhatsApp: ' + data.whatsapp + '</p>';
+                    html += '<p style="color:#4ade80;margin-bottom:16px;font-weight:700;font-size:15px;"><i class="fab fa-whatsapp"></i> WhatsApp: ' + data.whatsapp + '</p>';
                 }
-                html += '<pre style="white-space:pre-wrap;color:#e2e8f0;background:rgba(0,0,0,0.4);padding:16px;border-radius:10px;">' + data.texto_original_completo + '</pre>';
+                html += '<pre style="white-space:pre-wrap;color:#e2e8f0;background:rgba(0,0,0,0.5);padding:20px;border-radius:12px;line-height:1.8;font-family:monospace;font-size:13px;border:2px solid rgba(102,126,234,0.2);">' + data.texto_original_completo + '</pre>';
                 
                 box.innerHTML = html;
                 btn.disabled = true;
-                btn.textContent = 'Revelado';
-                btn.className = 'btn text-sm cursor-not-allowed';
-                btn.style.background = '#059669';
+                btn.innerHTML = '<i class="fas fa-check"></i> Revelado';
+                btn.className = 'button';
+                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
                 btn.style.width = 'auto';
-                btn.style.padding = '10px 16px';
+                btn.style.padding = '12px 20px';
             } catch (e) {
-                box.textContent = 'Error: ' + String(e.message);
+                box.innerHTML = '<p style="color:#f87171;font-weight:600;">Error: ' + String(e.message) + '</p>';
             }
         }
     </script>
