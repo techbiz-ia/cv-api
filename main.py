@@ -14,13 +14,14 @@ async def lifespan(app: FastAPI):
     print("✅ Tablas de base de datos verificadas y creadas.")
     yield
 
-app = FastAPI(title="Mi API MVP", version="0.1.0", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc")
+app = FastAPI(title="Nexus Inclusivo API", version="1.0.0", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
 
 @app.get("/health")
-def health(): return {"status": "ok"}
+def health(): 
+    return {"status": "ok"}
 
 @app.get("/", response_class=HTMLResponse)
 def serve_frontend():
@@ -53,8 +54,9 @@ def serve_frontend():
                         <p class="text-blue-100 text-sm">Reclutamiento Inteligente y Ético con IA</p>
                     </div>
                 </div>
-                <div id="authStatus" class="hidden flex items-center space-x-2 bg-blue-800 px-3 py-1 rounded-full text-sm">
-                    <i class="fas fa-check-circle text-green-400"></i> <span>Sesión Activa</span>
+                <div id="authStatus" class="hidden items-center space-x-2 bg-blue-800 px-3 py-1 rounded-full text-sm">
+                    <i class="fas fa-user-shield text-green-400"></i>
+                    <span id="userRole">Sesión Activa</span>
                     <button onclick="logout()" class="ml-3 text-blue-200 hover:text-white underline text-xs">Salir</button>
                 </div>
             </div>
@@ -66,7 +68,7 @@ def serve_frontend():
                 <div class="space-y-4">
                     <input type="text" id="loginUser" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Usuario (Ej: Admin)">
                     <input type="password" id="loginPass" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contraseña">
-                    <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
+                    <button id="loginBtn" onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
                         <i class="fas fa-sign-in-alt mr-2"></i> Ingresar al Sistema
                     </button>
                     <p id="loginError" class="text-red-500 text-sm mt-2 hidden text-center"></p>
@@ -103,7 +105,6 @@ def serve_frontend():
                     <button id="analyzeBtn" onclick="procesarCV()" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center space-x-2">
                         <i class="fas fa-magic"></i> <span>Procesar con IA</span>
                     </button>
-
                     <div id="resultSection" class="hidden mt-6 space-y-4">
                         <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                             <h3 class="font-semibold text-blue-800 mb-2">🎯 Resultado:</h3>
@@ -153,68 +154,57 @@ def serve_frontend():
             }
 
             async function login() {
-    const user = document.getElementById('loginUser').value;
-    const pass = document.getElementById('loginPass').value;
-    const errorDiv = document.getElementById('loginError');
-    const loginBtn = document.querySelector('#loginSection button');
+                const user = document.getElementById('loginUser').value;
+                const pass = document.getElementById('loginPass').value;
+                const errorDiv = document.getElementById('loginError');
+                const loginBtn = document.getElementById('loginBtn');
 
-    if (!user || !pass) {
-        errorDiv.textContent = "Por favor completa todos los campos.";
-        errorDiv.classList.remove('hidden');
-        return;
-    }
+                if (!user || !pass) {
+                    errorDiv.textContent = "Por favor completa todos los campos.";
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
 
-    // 🔥 Mostrar estado de carga para que no parezca tildado
-    loginBtn.disabled = true;
-    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Despertando servidor (espera ~50 seg)...';
-    errorDiv.classList.add('hidden');
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Despertando servidor (espera ~50 seg)...';
+                errorDiv.classList.add('hidden');
 
-    const formData = new URLSearchParams();
-    formData.append('username', user);
-    formData.append('password', pass);
+                const formData = new URLSearchParams();
+                formData.append('username', user);
+                formData.append('password', pass);
 
-    try {
-        const response = await fetch(`${API_URL}/usuarios/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        });
-        
-        if (!response.ok) throw new Error("Credenciales incorrectas");
-        const data = await response.json();
-        token = data.access_token;
-        
-        const rol = obtenerRol();
-        document.getElementById('userRole').innerHTML = `<i class="fas fa-user-shield"></i> ${rol}`;
-        
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('mainDashboard').classList.remove('hidden');
-        document.getElementById('authStatus').classList.remove('hidden');
-        document.getElementById('authStatus').classList.add('flex');
-        
-    } catch (err) {
-        errorDiv.textContent = "❌ " + err.message;
-        errorDiv.classList.remove('hidden');
-        // 🔥 Restaurar botón si hay error
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Ingresar al Sistema';
-    }
-}
                 try {
-                    const response = await fetch(`${API_URL}/usuarios/login`, {
+                    const response = await fetch(API_URL + '/usuarios/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: formData
                     });
-                    if (!response.ok) throw new Error("Credenciales incorrectas");
+                    
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.detail || "Credenciales incorrectas");
+                    }
+                    
                     const data = await response.json();
                     token = data.access_token;
+                    
+                    let rol = "User";
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        rol = payload.rol || "User";
+                    } catch (e) {}
+                    
+                    document.getElementById('userRole').textContent = rol;
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('mainDashboard').classList.remove('hidden');
                     document.getElementById('authStatus').classList.remove('hidden');
+                    document.getElementById('authStatus').classList.add('flex');
+                    
                 } catch (err) {
                     errorDiv.textContent = "❌ " + err.message;
                     errorDiv.classList.remove('hidden');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Ingresar al Sistema';
                 }
             }
 
@@ -253,15 +243,15 @@ def serve_frontend():
                     if (file) {
                         const formData = new FormData();
                         formData.append('file', file);
-                        response = await fetch(`${API_URL}/cvs/procesar-archivo`, {
+                        response = await fetch(API_URL + '/cvs/procesar-archivo', {
                             method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` },
+                            headers: { 'Authorization': 'Bearer ' + token },
                             body: formData
                         });
                     } else {
-                        response = await fetch(`${API_URL}/cvs/procesar-ia`, {
+                        response = await fetch(API_URL + '/cvs/procesar-ia', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                             body: JSON.stringify({ texto_cv: texto })
                         });
                     }
@@ -270,12 +260,12 @@ def serve_frontend():
                     if (!response.ok) throw new Error(data.detail || "Error al procesar");
 
                     if (data.status === 'pendiente') {
-                        skillsContainer.innerHTML = '<p class="text-blue-600 font-semibold"><i class="fas fa-clock"></i> ¡Archivo recibido! Se está procesando en segundo plano. Revisa la pestaña "Buscar Candidatos" en unos segundos.</p>';
+                        skillsContainer.innerHTML = '<p class="text-blue-600 font-semibold"><i class="fas fa-clock"></i> ¡Archivo recibido! Se está procesando en segundo plano.</p>';
                         redactedBox.classList.add('hidden');
                     } else {
                         skillsContainer.innerHTML = "";
                         if (data.skills_extraidas && data.skills_extraidas.length > 0) {
-                            data.skills_extraidas.forEach(skill => {
+                            data.skills_extraidas.forEach(function(skill) {
                                 const tag = document.createElement('span');
                                 tag.className = 'skill-tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold border border-blue-200';
                                 tag.textContent = skill;
@@ -297,76 +287,7 @@ def serve_frontend():
                 }
             }
 
-         function obtenerRol() {
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.rol || "User";
-    } catch (e) {
-        return "User";
-    }
-}
-
-async function revelarIdentidad(perfilId, boton) {
-    const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
-    contenedor.classList.remove('hidden');
-    contenedor.innerHTML = '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verificando permisos de administrador...</p>';
-
-    try {
-        const response = await fetch(`${API_URL}/cvs/perfil/${encodeURIComponent(perfilId)}/identidad`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || "Acceso denegado");
-
-        contenedor.innerHTML = `
-            <h5 class="text-sm font-bold text-blue-800 mb-2">
-                <i class="fas fa-unlock"></i> Identidad Revelada (Acción Auditada)
-            </h5>
-            <p class="text-xs text-gray-500 mb-2">Revelado por: ${data.identidad_revelada_por}</p>
-            <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-blue-100">${data.texto_original_completo}</pre>
-        `;
-        boton.disabled = true;
-        boton.innerHTML = '<i class="fas fa-check"></i> Identidad Revelada';
-
-    } catch (err) {
-        contenedor.innerHTML = `<p class="text-sm text-red-600">🔒 ${err.message}</p>`;
-    }
-}function obtenerRol() {
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.rol || "User";
-    } catch (e) {
-        return "User";
-async function revelarIdentidad(perfilId, boton) {
-    const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
-    contenedor.classList.remove('hidden');
-    contenedor.innerHTML = '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verificando permisos de administrador...</p>';
-
-    try {
-        const response = await fetch(`${API_URL}/cvs/perfil/${encodeURIComponent(perfilId)}/identidad`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || "Acceso denegado");
-
-        contenedor.innerHTML = `
-            <h5 class="text-sm font-bold text-blue-800 mb-2">
-                <i class="fas fa-unlock"></i> Identidad Revelada (Acción Auditada)
-            </h5>
-            <p class="text-xs text-gray-500 mb-2">Revelado por: ${data.identidad_revelada_por}</p>
-            <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-blue-100">${data.texto_original_completo}</pre>
-        `;
-        boton.disabled = true;
-        boton.innerHTML = '<i class="fas fa-check"></i> Identidad Revelada';
-
-    } catch (err) {
-        contenedor.innerHTML = `<p class="text-sm text-red-600">🔒 ${err.message}</p>`;
-    }
-               async function buscarCandidatos() {
+            async function buscarCandidatos() {
                 const skillsInput = document.getElementById('searchSkills').value;
                 const minMatch = parseInt(document.getElementById('searchMinMatch').value) || 50;
                 const errorDiv = document.getElementById('searchError');
@@ -378,15 +299,22 @@ async function revelarIdentidad(perfilId, boton) {
                     return;
                 }
 
-                const skillsArray = skillsInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                const skillsArray = skillsInput.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+                
+                let esAdmin = false;
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    esAdmin = (payload.rol === "Admin");
+                } catch (e) {}
+                
                 resultsDiv.innerHTML = '<p class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
                 resultsDiv.classList.remove('hidden');
                 errorDiv.classList.add('hidden');
 
                 try {
-                    const response = await fetch(`${API_URL}/cvs/buscar-candidatos`, {
+                    const response = await fetch(API_URL + '/cvs/buscar-candidatos', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ skills_requeridas: skillsArray, min_match_porcentaje: minMatch })
                     });
                     const data = await response.json();
@@ -397,47 +325,77 @@ async function revelarIdentidad(perfilId, boton) {
                         resultsDiv.innerHTML = '<p class="text-center text-gray-500 py-4">No se encontraron candidatos con esos requisitos.</p>';
                         return;
                     }
-const esAdmin = obtenerRol() === "Admin";
-                    data.candidatos.forEach(candidato => {
+
+                    data.candidatos.forEach(function(candidato) {
                         const card = document.createElement('div');
                         card.className = 'bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition';
                         const matchColor = candidato.match_porcentaje >= 80 ? 'text-green-700 bg-green-100 border-green-200' : 'text-yellow-700 bg-yellow-100 border-yellow-200';
-                        let skillsHtml = candidato.skills_coincidentes.map(s => `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold mr-1 mb-1 inline-block">${s}</span>`).join('');
-                        let otherSkillsHtml = candidato.todas_las_skills_del_cv.filter(s => !candidato.skills_coincidentes.map(sc => sc.toLowerCase()).includes(s.toLowerCase())).map(s => `<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-1 mb-1 inline-block">${s}</span>`).join('');
+                        
+                        let skillsHtml = candidato.skills_coincidentes.map(function(s) { 
+                            return '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold mr-1 mb-1 inline-block">' + s + '</span>'; 
+                        }).join('');
+                        
+                        let otherSkillsHtml = candidato.todas_las_skills_del_cv.filter(function(s) { 
+                            return candidato.skills_coincidentes.map(function(sc) { return sc.toLowerCase(); }).indexOf(s.toLowerCase()) === -1; 
+                        }).map(function(s) { 
+                            return '<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-1 mb-1 inline-block">' + s + '</span>'; 
+                        }).join('');
 
-                        card.innerHTML = `
-                            <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
-                                <h4 class="font-bold text-lg text-gray-800">ID: ${candidato.perfil_ciego_id}</h4>
-                                <span class="${matchColor} px-3 py-1 rounded-full text-sm font-bold border">${candidato.match_porcentaje}% Match</span>
-                            </div>
-                            <div class="mb-3">
-                                <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold">Habilidades que coinciden:</p>
-                                <div class="flex flex-wrap mb-2">${skillsHtml || '<span class="text-gray-400 text-sm">Ninguna</span>'}</div>
-                                ${otherSkillsHtml ? `<p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold mt-2">Otras habilidades:</p><div class="flex flex-wrap">${otherSkillsHtml}</div>` : ''}
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                                <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold">Perfil Redactado (Anónimo):</p>
-                                <p class="text-sm text-gray-700 italic leading-relaxed">${candidato.cv_redactado || 'No disponible'}</p>
-                            </div>
-                                                        <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-                                <span class="text-xs text-gray-500"><i class="fas fa-user-shield"></i> Datos protegidos por privacidad</span>
-                                ${esAdmin ? `
-                                    <button onclick="revelarIdentidad('${candidato.perfil_ciego_id}', this)" 
-                                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                                        <i class="fas fa-unlock mr-1"></i> Ver Identidad (Admin)
-                                    </button>
-                                ` : `
-                                    <span class="text-xs text-gray-400">Solicita acceso a RR.HH.</span>
-                                `}
-                            </div>
-                            <div class="identity-box hidden mt-4 bg-blue-50 border border-blue-200 p-4 rounded-lg"></div>
-                        `;
+                        const adminButton = esAdmin 
+                            ? '<button onclick="revelarIdentidad(\\'' + candidato.perfil_ciego_id + '\\', this)" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"><i class="fas fa-unlock mr-1"></i> Ver Identidad (Admin)</button>'
+                            : '<span class="text-xs text-gray-400"><i class="fas fa-lock"></i> Solicita acceso a RR.HH.</span>';
+
+                        card.innerHTML = 
+                            '<div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">' +
+                                '<h4 class="font-bold text-lg text-gray-800">ID: ' + candidato.perfil_ciego_id + '</h4>' +
+                                '<span class="' + matchColor + ' px-3 py-1 rounded-full text-sm font-bold border">' + candidato.match_porcentaje + '% Match</span>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold">Habilidades que coinciden:</p>' +
+                                '<div class="flex flex-wrap mb-2">' + (skillsHtml || '<span class="text-gray-400 text-sm">Ninguna</span>') + '</div>' +
+                                (otherSkillsHtml ? '<p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold mt-2">Otras habilidades:</p><div class="flex flex-wrap">' + otherSkillsHtml + '</div>' : '') +
+                            '</div>' +
+                            '<div class="bg-gray-50 p-3 rounded border border-gray-200">' +
+                                '<p class="text-xs text-gray-500 mb-1 uppercase tracking-wide font-semibold">Perfil Redactado (Anónimo):</p>' +
+                                '<p class="text-sm text-gray-700 italic leading-relaxed">' + (candidato.cv_redactado || 'No disponible') + '</p>' +
+                            '</div>' +
+                            '<div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">' +
+                                '<span class="text-xs text-gray-500"><i class="fas fa-user-shield"></i> Datos protegidos por privacidad</span>' +
+                                adminButton +
+                            '</div>' +
+                            '<div class="identity-box hidden mt-4 bg-blue-50 border border-blue-200 p-4 rounded-lg"></div>';
+                        
                         resultsDiv.appendChild(card);
                     });
                 } catch (err) {
                     resultsDiv.classList.add('hidden');
                     errorDiv.textContent = "❌ " + err.message;
                     errorDiv.classList.remove('hidden');
+                }
+            }
+
+            async function revelarIdentidad(perfilId, boton) {
+                const contenedor = boton.closest('.bg-white').querySelector('.identity-box');
+                contenedor.classList.remove('hidden');
+                contenedor.innerHTML = '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verificando permisos...</p>';
+
+                try {
+                    const response = await fetch(API_URL + '/cvs/perfil/' + encodeURIComponent(perfilId) + '/identidad', {
+                        method: 'GET',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || "Acceso denegado");
+
+                    contenedor.innerHTML = 
+                        '<h5 class="text-sm font-bold text-blue-800 mb-2"><i class="fas fa-unlock"></i> Identidad Revelada (Acción Auditada)</h5>' +
+                        '<p class="text-xs text-gray-500 mb-2">Revelado por: <strong>' + data.identidad_revelada_por + '</strong></p>' +
+                        '<pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-blue-100">' + data.texto_original_completo + '</pre>';
+                    
+                    boton.disabled = true;
+                    boton.innerHTML = '<i class="fas fa-check"></i> Identidad Revelada';
+                } catch (err) {
+                    contenedor.innerHTML = '<p class="text-sm text-red-600">🔒 ' + err.message + '</p>';
                 }
             }
         </script>
