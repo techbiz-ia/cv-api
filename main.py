@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     print("Tablas verificadas.")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="4.0.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="5.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -34,316 +34,466 @@ def serve_frontend():
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Nexus Inclusivo v4.0 - AI Recruitment Platform</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=4.0">
+    <title>Nexus Inclusivo · Plataforma de Reclutamiento Ético</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --border-subtle: #334155;
+            --border-muted: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-subtle: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --whatsapp: #25D366;
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            color: #e0e0e0;
-            position: relative;
-            overflow-x: hidden;
+            line-height: 1.6;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
         }
         
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(240, 147, 251, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        
+        /* Header corporativo */
         .header {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 2px solid;
-            border-image: linear-gradient(90deg, #667eea, #764ba2, #f093fb) 1;
-            padding: 24px 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 16px 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1;
+            padding: 0 32px;
         }
         
         .flex { display: flex; align-items: center; }
         .justify-between { justify-content: space-between; }
-        .gap-3 { gap: 16px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
         
-        .logo-box {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 16px;
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
         }
         
-        .logo-box i { color: white; font-size: 28px; }
+        .logo-mark i { color: white; font-size: 18px; }
         
-        .brand-title {
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 0;
+        .brand-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
         }
         
-        .brand-subtitle {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-top: 2px;
+        .brand-tagline {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
         }
         
-        .auth-badge {
+        .user-chip {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            padding: 10px 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
+            gap: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-muted);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
         }
         
-        .auth-badge i { color: #4ade80; font-size: 20px; }
-        .auth-badge span { font-weight: 700; font-size: 15px; }
+        .user-chip i { color: var(--success); font-size: 14px; }
+        .user-chip span { font-weight: 600; color: var(--text-secondary); }
         
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            border: 2px solid rgba(239, 68, 68, 0.4);
-            color: #f87171;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--border-muted);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.15s;
         }
         
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
+        .btn-logout:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
         }
         
-        .panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 2px solid transparent;
-            border-radius: 24px;
-            padding: 40px;
-            margin-top: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            position: relative;
-            animation: fadeInUp 0.6s ease-out;
+        /* Cards y paneles */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 32px;
+            margin-top: 24px;
         }
         
-        .panel::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea);
-            border-radius: 24px;
-            z-index: -1;
-            background-size: 200% 200%;
-            animation: gradientShift 8s ease infinite;
+        .card-header {
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
         }
         
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 16px 20px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 2px solid rgba(148, 163, 184, 0.2);
-            border-radius: 12px;
-            color: #f8fafc;
-            font-size: 15px;
-            outline: none;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .input-field:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 20px rgba(102, 126, 234, 0.4);
-            background: rgba(15, 23, 42, 0.95);
-        }
-        
-        .input-field::placeholder { color: #64748b; }
-        
-        .button {
-            padding: 16px 28px;
-            border-radius: 12px;
+        .card-title {
+            font-size: 20px;
             font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+        
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        /* Inputs */
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .field-label i { color: var(--text-muted); margin-right: 6px; }
+        
+        .input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-muted);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+            margin-bottom: 16px;
+        }
+        
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .input::placeholder { color: var(--text-subtle); }
+        
+        /* Botones */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
             border: none;
             color: white;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+        
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-primary {
+            background: var(--accent);
             width: 100%;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            font-size: 15px;
-            letter-spacing: 0.5px;
         }
         
-        .button::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 0; height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        .btn-primary:hover { background: var(--accent-hover); }
+        
+        .btn-success {
+            background: var(--success);
+            width: 100%;
         }
         
-        .button:hover::before { width: 300px; height: 300px; }
+        .btn-success:hover { background: var(--success-hover); }
         
-        .button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            width: 100%;
+            border: 1px solid var(--border-muted);
         }
         
-        .button:active { transform: translateY(-1px); }
-        .button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        
-        .button-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        .btn-secondary:hover {
+            background: var(--border-muted);
+            color: var(--text-primary);
         }
         
-        .button-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+            width: auto;
         }
         
-        .button-secondary {
-            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        .btn-whatsapp {
+            background: var(--whatsapp);
         }
         
+        .btn-whatsapp:hover { background: #1fb855; }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        
+        .tab:hover { color: var(--text-secondary); }
+        
+        .tab.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        /* Utilities */
         .hidden { display: none !important; }
-        
-        .text-muted { color: #94a3b8; font-size: 14px; }
-        .text-error { color: #f87171; font-size: 14px; }
         .text-center { text-align: center; }
+        .text-muted { color: var(--text-muted); }
+        .text-error { color: var(--danger); font-size: 13px; }
         .mb-4 { margin-bottom: 16px; }
         .mb-6 { margin-bottom: 24px; }
         .mt-6 { margin-top: 24px; }
         
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px; right: 30px;
-            width: 70px; height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 36px;
-            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
-            z-index: 9999;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        /* Login */
+        .login-card {
+            max-width: 400px;
+            margin: 80px auto;
         }
         
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6), 0 0 0 0 rgba(37, 211, 102, 0.7);
-            }
-            50% {
-                box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6), 0 0 0 20px rgba(37, 211, 102, 0);
-            }
-        }
-        
-        .whatsapp-float:hover {
-            transform: scale(1.15) rotate(8deg);
-            box-shadow: 0 12px 40px rgba(37, 211, 102, 0.8);
-        }
-        
-        .candidate-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(148, 163, 184, 0.1);
-            border-radius: 20px;
-            padding: 32px;
-            margin-top: 24px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: fadeInUp 0.5s ease-out;
-        }
-        
-        .candidate-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(102, 126, 234, 0.5);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-        }
-        
-        .skill-chip {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 700;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-            border: 2px solid rgba(102, 126, 234, 0.4);
-            color: #a5b4fc;
-            margin: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        .skill-chip:hover {
-            transform: scale(1.1) translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .section-title {
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 16px;
-        }
-        
-        .icon-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
+        .login-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-icon i { color: white; font-size: 24px; }
+        
+        /* Candidate cards */
+        .candidate {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 24px;
+            margin-top: 16px;
+            transition: border-color 0.15s;
+        }
+        
+        .candidate:hover { border-color: var(--border-muted); }
+        
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .candidate-id {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        
+        .match-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-muted);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 3px 3px 3px 0;
+        }
+        
+        .skill-tag.match {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+        
+        .redacted-text {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.7;
+            margin: 16px 0;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-subtle);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+        
+        .candidate-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .privacy-note {
+            font-size: 12px;
+            color: var(--text-subtle);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .identity-box {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .identity-box pre {
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        /* WhatsApp flotante discreto */
+        .wa-float {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--whatsapp);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .wa-float:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--text-subtle);
+            font-size: 12px;
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 48px;
+        }
+        
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            color: var(--text-subtle);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
         }
     </style>
 </head>
@@ -351,105 +501,106 @@ def serve_frontend():
     <header class="header">
         <div class="container flex justify-between">
             <div class="flex gap-3">
-                <div class="logo-box">
+                <div class="logo-mark">
                     <i class="fas fa-brain"></i>
                 </div>
                 <div>
-                    <h1 class="brand-title">NEXUS INCLUSIVO</h1>
-                    <p class="brand-subtitle">AI-Powered Ethical Recruitment Platform v4.0</p>
+                    <div class="brand-name">Nexus Inclusivo</div>
+                    <div class="brand-tagline">Plataforma de Reclutamiento Ético</div>
                 </div>
             </div>
-            <div id="authStatus" class="hidden">
-                <div class="auth-badge">
-                    <i class="fas fa-user-shield"></i>
+            <div id="authStatus" class="hidden flex gap-3">
+                <div class="user-chip">
+                    <i class="fas fa-shield-alt"></i>
                     <span id="userRole">Admin</span>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Salir
-                    </button>
                 </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                </button>
             </div>
         </div>
     </header>
 
     <main class="container">
-        <section id="loginSection" class="panel" style="max-width:500px;margin:80px auto;">
+        <section id="loginSection" class="card login-card">
             <div class="text-center mb-6">
-                <div class="icon-circle" style="background:linear-gradient(135deg,#667eea,#764ba2);">
-                    <i class="fas fa-lock" style="color:white;font-size:32px;"></i>
+                <div class="login-icon">
+                    <i class="fas fa-lock"></i>
                 </div>
-                <h2 class="section-title">Acceso al Sistema</h2>
-                <p class="text-muted">Ingresa tus credenciales para continuar</p>
+                <h1 class="card-title text-center">Iniciar sesión</h1>
+                <p class="card-subtitle text-center">Accede a tu cuenta para continuar</p>
             </div>
-            <input id="loginUser" class="input-field" placeholder="Usuario">
-            <input id="loginPass" class="input-field" type="password" placeholder="Contraseña">
-            <button id="loginBtn" class="button button-primary" onclick="login()">
-                <i class="fas fa-sign-in-alt"></i> Ingresar al Sistema
+            <label class="field-label">Usuario</label>
+            <input id="loginUser" class="input" placeholder="tu.usuario">
+            <label class="field-label">Contraseña</label>
+            <input id="loginPass" class="input" type="password" placeholder="••••••••">
+            <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:8px;">
+                Ingresar al sistema
             </button>
             <p id="loginError" class="hidden text-error mt-6 text-center"></p>
         </section>
 
         <section id="dashboard" class="hidden">
-            <div class="flex gap-3 mb-6">
-                <button id="tab-analyze" class="button button-primary" onclick="showTab('analyze')" style="flex:1;">
+            <div class="tabs">
+                <button id="tab-analyze" class="tab active" onclick="showTab('analyze')">
                     <i class="fas fa-file-alt"></i> Analizar CV
                 </button>
-                <button id="tab-search" class="button button-secondary" onclick="showTab('search')" style="flex:1;">
-                    <i class="fas fa-search"></i> Buscar Candidatos
+                <button id="tab-search" class="tab" onclick="showTab('search')">
+                    <i class="fas fa-search"></i> Buscar candidatos
                 </button>
             </div>
 
-            <div id="analyzeSection" class="panel">
-                <div class="text-center mb-6">
-                    <div class="icon-circle" style="background:linear-gradient(135deg,#10b981,#059669);">
-                        <i class="fas fa-magic" style="color:white;font-size:28px;"></i>
-                    </div>
-                    <h2 class="section-title">Procesamiento con IA</h2>
-                    <p class="text-muted">Sube un archivo o pega el texto del currículum</p>
+            <div id="analyzeSection" class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Procesamiento de currículum</h2>
+                    <p class="card-subtitle">Analiza un CV con inteligencia artificial de forma ética y privada</p>
                 </div>
                 
-                <label class="text-muted mb-4" style="display:block;font-weight:600;">
-                    <i class="fas fa-cloud-upload-alt" style="color:#667eea;"></i> Archivo (PDF, DOCX, TXT)
+                <label class="field-label">
+                    <i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)
                 </label>
-                <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input-field" style="padding:12px;">
+                <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input">
                 
-                <label class="text-muted mb-4" style="display:block;font-weight:600;">
-                    <i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp del candidato (opcional)
+                <label class="field-label">
+                    <i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)
                 </label>
-                <input id="cvWhatsapp" class="input-field" placeholder="+54 9 299 329 3669">
+                <input id="cvWhatsapp" class="input" placeholder="+54 9 299 329 3669">
+                <p class="text-muted" style="font-size:12px;margin-top:-10px;margin-bottom:16px;">
+                    Solo visible para administradores al revelar identidad
+                </p>
                 
-                <label class="text-muted mb-4" style="display:block;font-weight:600;">
-                    <i class="fas fa-paste" style="color:#667eea;"></i> O pega el texto del CV
+                <div class="divider">o</div>
+                
+                <label class="field-label">
+                    <i class="fas fa-paste"></i> Texto del currículum
                 </label>
-                <textarea id="cvText" rows="6" class="input-field" style="resize:none;"></textarea>
+                <textarea id="cvText" rows="6" class="input" style="resize:vertical;min-height:120px;" placeholder="Pega aquí el contenido del CV..."></textarea>
                 
-                <button id="analyzeBtn" class="button button-success" onclick="procesarCV()">
+                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()" style="margin-top:8px;">
                     <i class="fas fa-magic"></i> Procesar con IA
                 </button>
                 <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
-                <div id="analyzeResult" class="hidden mt-6 text-center" style="color:#a5b4fc;font-weight:600;"></div>
+                <div id="analyzeResult" class="hidden mt-6 text-center" style="color:var(--text-secondary);"></div>
             </div>
 
-            <div id="searchSection" class="panel hidden">
-                <div class="text-center mb-6">
-                    <div class="icon-circle" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
-                        <i class="fas fa-search" style="color:white;font-size:28px;"></i>
-                    </div>
-                    <h2 class="section-title">Búsqueda de Candidatos</h2>
-                    <p class="text-muted">Encuentra candidatos con Blind Hiring</p>
+            <div id="searchSection" class="card hidden">
+                <div class="card-header">
+                    <h2 class="card-title">Búsqueda de candidatos</h2>
+                    <p class="card-subtitle">Encuentra profesionales con el método Blind Hiring</p>
                 </div>
                 
-                <label class="text-muted mb-4" style="display:block;font-weight:600;">
-                    <i class="fas fa-tags" style="color:#667eea;"></i> Habilidades (separadas por coma)
+                <label class="field-label">
+                    <i class="fas fa-tags"></i> Habilidades requeridas
                 </label>
-                <input id="searchSkills" class="input-field" placeholder="Python, FastAPI, AWS">
+                <input id="searchSkills" class="input" placeholder="Python, FastAPI, AWS">
                 
-                <label class="text-muted mb-4" style="display:block;font-weight:600;">
-                    <i class="fas fa-percentage" style="color:#667eea;"></i> Match mínimo (%)
+                <label class="field-label">
+                    <i class="fas fa-percent"></i> Coincidencia mínima (%)
                 </label>
-                <input id="searchMinMatch" type="number" value="50" class="input-field">
+                <input id="searchMinMatch" type="number" value="50" class="input">
                 
-                <button class="button button-primary" onclick="buscarCandidatos()">
-                    <i class="fas fa-search"></i> Buscar Candidatos
+                <button class="btn btn-primary" onclick="buscarCandidatos()" style="margin-top:8px;">
+                    <i class="fas fa-search"></i> Buscar candidatos
                 </button>
                 <p id="searchError" class="hidden text-error mt-6 text-center"></p>
                 <div id="searchResults" class="mt-6"></div>
@@ -457,12 +608,12 @@ def serve_frontend():
         </section>
     </main>
 
-    <a class="whatsapp-float" href="https://wa.me/5492993293669?text=Hola,%20quiero%20informacion%20sobre%20Nexus%20Inclusivo" target="_blank" title="Contacto por WhatsApp">
+    <a class="wa-float" href="https://wa.me/5492993293669?text=Hola,%20quiero%20informacion%20sobre%20Nexus%20Inclusivo" target="_blank" title="Contacto institucional">
         <i class="fab fa-whatsapp"></i>
     </a>
     
-    <footer class="text-center text-muted" style="padding:40px 0;position:relative;z-index:1;">
-        © 2026 Nexus Inclusivo · Powered by AI & Ethical Design
+    <footer class="footer">
+        © 2026 Nexus Inclusivo · Reclutamiento ético potenciado por IA
     </footer>
 
     <script>
@@ -473,10 +624,8 @@ def serve_frontend():
             document.getElementById('analyzeSection').classList.add('hidden');
             document.getElementById('searchSection').classList.add('hidden');
             document.getElementById(name + 'Section').classList.remove('hidden');
-            document.getElementById('tab-analyze').className = name === 'analyze' ? 'button button-primary' : 'button button-secondary';
-            document.getElementById('tab-search').className = name === 'search' ? 'button button-primary' : 'button button-secondary';
-            document.getElementById('tab-analyze').style.flex = '1';
-            document.getElementById('tab-search').style.flex = '1';
+            document.getElementById('tab-analyze').className = name === 'analyze' ? 'tab active' : 'tab';
+            document.getElementById('tab-search').className = name === 'search' ? 'tab active' : 'tab';
         }
 
         function getRole() {
@@ -496,7 +645,7 @@ def serve_frontend():
                 return;
             }
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando... (espera 50s)';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando...';
             var body = new URLSearchParams();
             body.append('username', user);
             body.append('password', pass);
@@ -518,7 +667,7 @@ def serve_frontend():
                 err.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar al Sistema';
+                btn.innerHTML = 'Ingresar al sistema';
             }
         }
 
@@ -565,7 +714,7 @@ def serve_frontend():
                 }
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Error al procesar');
-                out.textContent = data.status === 'pendiente' ? 'Archivo recibido. Procesando en segundo plano...' : 'CV procesado: ' + (data.skills_extraidas || []).join(', ');
+                out.textContent = data.status === 'pendiente' ? 'Archivo recibido. Procesando en segundo plano...' : 'CV procesado correctamente.';
                 out.classList.remove('hidden');
             } catch (e) {
                 err.textContent = String(e.message);
@@ -588,7 +737,7 @@ def serve_frontend():
                 return;
             }
             var skills = raw.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
-            box.innerHTML = '<p class="text-muted mt-6 text-center" style="font-size:18px;"><i class="fas fa-spinner fa-spin"></i> Buscando candidatos...</p>';
+            box.innerHTML = '<p class="text-muted mt-6 text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
             try {
                 var res = await fetch(API_URL + '/cvs/buscar-candidatos', {
                     method: 'POST',
@@ -599,33 +748,51 @@ def serve_frontend():
                 if (!res.ok) throw new Error(data.detail || 'Error al buscar');
                 box.innerHTML = '';
                 if (!data.total_encontrados) {
-                    box.innerHTML = '<p class="text-muted mt-6 text-center" style="font-size:18px;">No se encontraron candidatos.</p>';
+                    box.innerHTML = '<p class="text-muted mt-6 text-center">No se encontraron candidatos con esos criterios.</p>';
                     return;
                 }
                 var admin = getRole() === 'Admin';
                 data.candidatos.forEach(function (c) {
                     var card = document.createElement('div');
-                    card.className = 'candidate-card';
-                    var waBtn = c.whatsapp ? '<a class="button button-success" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '" style="width:auto;padding:12px 20px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;"><i class="fab fa-whatsapp" style="font-size:18px;"></i> WhatsApp</a>' : '';
-                    var revealBtn = admin ? '<button class="button button-primary reveal-btn" style="width:auto;padding:12px 20px;"><i class="fas fa-unlock"></i> Revelar Identidad</button>' : '<span class="text-muted" style="font-weight:600;"><i class="fas fa-lock"></i> Solo Admin</span>';
+                    card.className = 'candidate';
+                    
+                    var skillsHtml = (c.skills_coincidentes || []).map(function (s) {
+                        return '<span class="skill-tag match">' + s + '</span>';
+                    }).join('');
+                    
+                    var otherSkills = (c.todas_las_skills_del_cv || []).filter(function (s) {
+                        return (c.skills_coincidentes || []).map(function (sc) { return sc.toLowerCase(); }).indexOf(s.toLowerCase()) === -1;
+                    });
+                    var otherHtml = otherSkills.map(function (s) {
+                        return '<span class="skill-tag">' + s + '</span>';
+                    }).join('');
+                    
+                    var waBtn = c.whatsapp ? '<a class="btn btn-sm btn-whatsapp" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '" title="Contactar por WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
+                    var revealBtn = admin ? '<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar identidad</button>' : '';
                     
                     card.innerHTML =
-                        '<div class="flex justify-between mb-4" style="border-bottom:2px solid rgba(148,163,184,0.1);padding-bottom:20px;">' +
-                            '<h3 class="section-title" style="font-size:24px;margin:0;">' + c.perfil_ciego_id + '</h3>' +
-                            '<span class="skill-chip" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(5,150,105,0.2));border-color:rgba(16,185,129,0.5);color:#4ade80;font-size:14px;font-weight:800;">' + c.match_porcentaje + '% MATCH</span>' +
+                        '<div class="candidate-header">' +
+                            '<div>' +
+                                '<div class="section-label">Perfil ciego</div>' +
+                                '<div class="candidate-id">' + c.perfil_ciego_id + '</div>' +
+                            '</div>' +
+                            '<span class="match-badge">' + c.match_porcentaje + '% match</span>' +
                         '</div>' +
-                        '<div class="mb-4">' +
-                            '<p class="text-muted" style="margin-bottom:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:12px;">Habilidades que coinciden:</p>' +
-                            '<div>' + (c.skills_coincidentes || []).map(function (s) { return '<span class="skill-chip">' + s + '</span>'; }).join('') + '</div>' +
+                        '<div class="section-label">Habilidades coincidentes</div>' +
+                        '<div style="margin-bottom:16px;">' + (skillsHtml || '<span class="text-muted">Ninguna</span>') + '</div>' +
+                        (otherHtml ? '<div class="section-label">Otras habilidades</div><div style="margin-bottom:16px;">' + otherHtml + '</div>' : '') +
+                        '<div class="section-label">Perfil redactado (anónimo)</div>' +
+                        '<div class="redacted-text">' + (c.cv_redactado || 'Sin perfil redactado') + '</div>' +
+                        '<div class="candidate-actions">' +
+                            '<span class="privacy-note"><i class="fas fa-shield-alt"></i> Datos protegidos por privacidad</span>' +
+                            '<div style="display:flex;gap:8px;">' + waBtn + revealBtn + '</div>' +
                         '</div>' +
-                        '<p class="text-muted mb-4" style="background:rgba(0,0,0,0.3);padding:20px;border-radius:12px;font-style:italic;border-left:4px solid #667eea;line-height:1.8;">' + (c.cv_redactado || 'Sin perfil redactado') + '</p>' +
-                        '<div class="flex gap-3" style="align-items:center;gap:12px;margin-top:24px;">' + waBtn + revealBtn + '</div>' +
-                        '<div class="identity-box hidden mt-6" style="background:rgba(0,0,0,0.4);padding:20px;border-radius:12px;font-size:13px;margin-top:24px;border:2px solid rgba(102,126,234,0.3);"></div>';
+                        '<div class="identity-box hidden"></div>';
                     box.appendChild(card);
                     
                     var rb = card.querySelector('.reveal-btn');
                     if (rb) {
-                        rb.addEventListener('click', function () { revelarIdentidad(c.perfil_ciego_id, rb); });
+                        rb.addEventListener('click', function () { revelarIdentidad(c.perfil_ciego_id, rb, card); });
                     }
                 });
             } catch (e) {
@@ -634,10 +801,10 @@ def serve_frontend():
             }
         }
 
-        async function revelarIdentidad(id, btn) {
-            var box = btn.closest('.candidate-card').querySelector('.identity-box');
+        async function revelarIdentidad(id, btn, card) {
+            var box = card.querySelector('.identity-box');
             box.classList.remove('hidden');
-            box.innerHTML = '<p style="color:#a5b4fc;"><i class="fas fa-spinner fa-spin"></i> Verificando permisos...</p>';
+            box.innerHTML = '<p style="color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Verificando permisos...</p>';
             try {
                 var res = await fetch(API_URL + '/cvs/perfil/' + encodeURIComponent(id) + '/identidad', {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -645,21 +812,23 @@ def serve_frontend():
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Acceso denegado');
                 
-                var html = '<p style="color:#a5b4fc;font-weight:800;margin-bottom:16px;font-size:16px;"><i class="fas fa-unlock"></i> Identidad revelada por: ' + data.identidad_revelada_por + '</p>';
+                var html = '<div style="margin-bottom:12px;"><span class="section-label">Revelado por</span><div style="color:var(--text-primary);font-weight:600;">' + data.identidad_revelada_por + '</div></div>';
+                
                 if (data.whatsapp) {
-                    html += '<p style="color:#4ade80;margin-bottom:16px;font-weight:700;font-size:15px;"><i class="fab fa-whatsapp"></i> WhatsApp: ' + data.whatsapp + '</p>';
+                    html += '<div style="margin-bottom:12px;"><span class="section-label">Contacto directo</span><div style="color:var(--success);font-weight:600;"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</div></div>';
                 }
-                html += '<pre style="white-space:pre-wrap;color:#e2e8f0;background:rgba(0,0,0,0.5);padding:20px;border-radius:12px;line-height:1.8;font-family:monospace;font-size:13px;border:2px solid rgba(102,126,234,0.2);">' + data.texto_original_completo + '</pre>';
+                
+                html += '<div class="section-label">Texto original completo</div>';
+                html += '<pre>' + data.texto_original_completo + '</pre>';
                 
                 box.innerHTML = html;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-check"></i> Revelado';
-                btn.className = 'button';
-                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-                btn.style.width = 'auto';
-                btn.style.padding = '12px 20px';
+                btn.style.background = 'var(--bg-tertiary)';
+                btn.style.color = 'var(--text-muted)';
+                btn.style.cursor = 'not-allowed';
             } catch (e) {
-                box.innerHTML = '<p style="color:#f87171;font-weight:600;">Error: ' + String(e.message) + '</p>';
+                box.innerHTML = '<p style="color:var(--danger);">Error: ' + String(e.message) + '</p>';
             }
         }
     </script>
