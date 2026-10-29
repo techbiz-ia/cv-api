@@ -282,15 +282,12 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
 
 @router.post("/chat/ask")
-@router.post("/chat/ask")
-   async def chat_ask(request: ChatRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    # El resto del código se mantiene igual
+async def chat_ask(request: ChatRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         total_cvs = db.query(CVDB).count()
         cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
         
         print(f"🤖 Chatbot solicitado. Mensaje: {request.message}")
-        print(f"📊 Stats: Total CVs={total_cvs}, Procesados={cvs_procesados}")
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
