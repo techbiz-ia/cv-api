@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     print("Tablas verificadas.")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="6.0.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="7.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -32,29 +32,16 @@ def serve_frontend():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Nexus Inclusivo · Reclutamiento Ético con IA</title>
+    <title>Nexus Inclusivo · Reclutamiento del Futuro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #131825;
-            --bg-tertiary: #1a2133;
-            --bg-card: #151b2e;
-            --border-subtle: rgba(99, 102, 241, 0.15);
-            --border-hover: rgba(99, 102, 241, 0.4);
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --text-subtle: #64748b;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
             --accent: #6366f1;
             --accent-light: #818cf8;
-            --accent-dark: #4f46e5;
-            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-2: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --gradient-3: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             --success: #10b981;
             --whatsapp: #25D366;
         }
@@ -62,54 +49,51 @@ def serve_frontend():
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg-primary);
-            color: var(--text-primary);
+            color: #f1f5f9;
             min-height: 100vh;
-            line-height: 1.6;
-            font-size: 14px;
-            position: relative;
             overflow-x: hidden;
         }
         
-        /* Fondo con gradiente sutil */
-        body::before {
-            content: '';
+        /* Partículas animadas */
+        .particles {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: 
-                radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
         }
         
-        /* Header con borde gradiente */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+        
+        /* Header */
         .header {
-            background: rgba(19, 24, 37, 0.8);
+            background: rgba(18, 18, 26, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 18px 0;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 20px 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            position: relative;
-        }
-        
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0.5;
         }
         
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 32px;
             position: relative;
@@ -120,189 +104,229 @@ def serve_frontend():
         .justify-between { justify-content: space-between; }
         .gap-3 { gap: 12px; }
         
-        /* Logo con gradiente */
-        .logo-mark {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-2);
-            border-radius: 10px;
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+            animation: pulse-glow 2s ease-in-out infinite;
         }
         
-        .logo-mark::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 3s infinite;
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.5); }
+            50% { box-shadow: 0 0 50px rgba(99, 102, 241, 0.8); }
         }
         
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
+        .logo i { color: white; font-size: 24px; }
         
-        .logo-mark i { color: white; font-size: 20px; position: relative; z-index: 1; }
-        
-        .brand-name {
-            font-size: 18px;
-            font-weight: 800;
-            background: var(--gradient-1);
+        .brand-title {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
         }
         
-        .brand-tagline {
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .brand-subtitle {
             font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-top: 1px;
+            color: #94a3b8;
+            margin-top: 2px;
         }
         
-        /* User chip */
-        .user-chip {
+        .user-badge {
             display: flex;
             align-items: center;
             gap: 10px;
             background: rgba(99, 102, 241, 0.1);
-            border: 1px solid var(--border-subtle);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
         }
         
-        .user-chip i { color: var(--success); font-size: 14px; }
-        .user-chip span { font-weight: 600; color: var(--text-secondary); }
+        .user-badge i { color: var(--success); }
         
         .btn-logout {
             background: transparent;
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #94a3b8;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
         }
         
         .btn-logout:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--text-primary);
-            border-color: var(--border-hover);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #f87171;
         }
         
-        /* Cards con bordes gradiente */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 16px;
-            padding: 36px;
-            margin-top: 28px;
-            position: relative;
-            transition: all 0.3s ease;
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            animation: fadeInUp 0.8s ease-out;
         }
         
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 16px;
-            padding: 1px;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .card:hover::before { opacity: 1; }
-        
-        .card-header {
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
+        .hero-title {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+            line-height: 1.1;
         }
         
-        .card-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-        
-        .card-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            margin-bottom: 40px;
             font-weight: 400;
         }
         
-        /* Inputs modernos */
-        .field-label {
-            display: block;
-            font-size: 13px;
+        .typing-text {
+            font-size: 18px;
+            color: var(--accent-light);
             font-weight: 600;
-            color: var(--text-secondary);
+            min-height: 30px;
+        }
+        
+        .typing-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 60px 0;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
         }
         
-        .field-label i { 
-            color: var(--accent-light); 
-            margin-right: 6px;
-            font-size: 12px;
+        .stat-label {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 32px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .card-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+        }
+        
+        .card-subtitle {
+            font-size: 15px;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+        
+        /* Inputs */
+        .field-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 10px;
         }
         
         .input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: var(--bg-primary);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            color: #f1f5f9;
+            font-size: 15px;
             outline: none;
-            transition: all 0.2s;
-            margin-bottom: 20px;
+            transition: all 0.3s;
+            margin-bottom: 24px;
         }
         
         .input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-            background: var(--bg-secondary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
         
-        .input::placeholder { color: var(--text-subtle); }
-        
-        /* Botones con efectos */
+        /* Buttons */
         .btn {
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
             border: none;
             color: white;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-family: inherit;
+            gap: 10px;
+            width: 100%;
             position: relative;
             overflow: hidden;
         }
@@ -315,267 +339,238 @@ def serve_frontend():
             width: 0;
             height: 0;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
         }
         
-        .btn:hover::before { width: 300px; height: 300px; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn:hover::before { width: 400px; height: 400px; }
+        .btn:hover { transform: translateY(-3px); }
         
         .btn-primary {
-            background: var(--gradient-2);
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-            width: 100%;
-        }
-        
-        .btn-primary:hover {
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-            width: 100%;
-        }
-        
-        .btn-success:hover {
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
-        }
-        
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            width: 100%;
-            border: 1px solid var(--border-subtle);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--border-subtle);
-            border-color: var(--border-hover);
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
         }
         
         .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
+            padding: 10px 20px;
+            font-size: 14px;
             width: auto;
         }
         
-        .btn-whatsapp {
-            background: var(--whatsapp);
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-        }
-        
-        .btn-whatsapp:hover {
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
-        }
-        
-        /* Tabs modernas */
+        /* Tabs */
         .tabs {
             display: flex;
-            gap: 8px;
-            background: var(--bg-card);
-            padding: 6px;
-            border-radius: 12px;
-            border: 1px solid var(--border-subtle);
-            margin-bottom: 28px;
+            gap: 12px;
+            margin-bottom: 32px;
         }
         
         .tab {
             flex: 1;
-            padding: 12px 20px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
+            padding: 16px 24px;
+            background: var(--bg-card);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            color: #94a3b8;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-family: inherit;
+            border-radius: 12px;
+            transition: all 0.3s;
         }
         
-        .tab:hover { color: var(--text-secondary); }
-        
         .tab.active {
-            background: var(--gradient-2);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            border-color: transparent;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
         }
         
         /* Utilities */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
-        .text-muted { color: var(--text-muted); }
-        .text-error { color: #ef4444; font-size: 13px; }
-        .mb-4 { margin-bottom: 16px; }
+        .text-muted { color: #94a3b8; }
+        .text-error { color: #ef4444; }
         .mb-6 { margin-bottom: 24px; }
         .mt-6 { margin-top: 24px; }
-        
-        /* Login */
-        .login-card {
-            max-width: 420px;
-            margin: 80px auto;
-        }
-        
-        .login-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--gradient-2);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
-        }
-        
-        .login-icon i { color: white; font-size: 28px; }
         
         /* Candidate cards */
         .candidate {
             background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 28px;
-            margin-top: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 24px;
             transition: all 0.3s;
-            position: relative;
         }
         
         .candidate:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
-        }
-        
-        .candidate-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-        
-        .candidate-id {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            transform: translateY(-6px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
         }
         
         .match-badge {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid rgba(16, 185, 129, 0.4);
             color: var(--success);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 700;
         }
         
         .skill-tag {
             display: inline-block;
-            padding: 6px 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 4px 4px 4px 0;
-            transition: all 0.2s;
-        }
-        
-        .skill-tag:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-        }
-        
-        .skill-tag.match {
+            padding: 8px 14px;
             background: rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.3);
-            color: var(--accent-light);
-        }
-        
-        .redacted-text {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-subtle);
-            padding: 18px;
-            border-radius: 10px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
             font-size: 13px;
-            color: var(--text-secondary);
-            font-style: italic;
-            line-height: 1.7;
-            margin: 20px 0;
+            font-weight: 600;
+            color: var(--accent-light);
+            margin: 4px;
         }
         
-        .section-label {
-            font-size: 11px;
+        /* Chat Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            z-index: 1000;
+        }
+        
+        .chat-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+            transition: all 0.3s;
+        }
+        
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.7);
+        }
+        
+        .chat-box {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            width: 380px;
+            height: 500px;
+            background: var(--bg-card);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .chat-box.active { display: flex; }
+        
+        .chat-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px 20px 0 0;
+            color: white;
             font-weight: 700;
-            color: var(--text-subtle);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            font-size: 16px;
         }
         
-        .candidate-actions {
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .chat-message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-message.user {
+            text-align: right;
+        }
+        
+        .chat-bubble {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .chat-message.bot .chat-bubble {
+            background: var(--bg-secondary);
+            color: #f1f5f9;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-message.user .chat-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-input-area {
+            padding: 16px;
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
             display: flex;
             gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-subtle);
-            align-items: center;
-            justify-content: space-between;
         }
         
-        .privacy-note {
-            font-size: 12px;
-            color: var(--text-subtle);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .identity-box {
-            margin-top: 20px;
-            padding: 20px;
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
             background: var(--bg-primary);
-            border: 1px solid var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             border-radius: 10px;
-            font-size: 13px;
+            color: #f1f5f9;
+            font-size: 14px;
+            outline: none;
         }
         
-        .identity-box pre {
-            white-space: pre-wrap;
-            color: var(--text-secondary);
-            background: var(--bg-secondary);
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 12px;
-            line-height: 1.7;
+        .chat-send {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
         }
         
-        /* WhatsApp flotante con efecto */
+        /* WhatsApp float */
         .wa-float {
             position: fixed;
             bottom: 28px;
             right: 28px;
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: var(--whatsapp);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 26px;
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+            font-size: 28px;
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.5);
             z-index: 999;
             text-decoration: none;
             transition: all 0.3s;
@@ -583,52 +578,25 @@ def serve_frontend():
         
         .wa-float:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--text-subtle);
-            font-size: 12px;
-            border-top: 1px solid var(--border-subtle);
-            margin-top: 60px;
-        }
-        
-        /* Divider */
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin: 28px 0;
-            color: var(--text-subtle);
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
         }
     </style>
 </head>
 <body>
+    <div class="particles" id="particles"></div>
+    
     <header class="header">
         <div class="container flex justify-between">
             <div class="flex gap-3">
-                <div class="logo-mark">
+                <div class="logo">
                     <i class="fas fa-brain"></i>
                 </div>
                 <div>
-                    <div class="brand-name">Nexus Inclusivo</div>
-                    <div class="brand-tagline">Reclutamiento Ético con IA</div>
+                    <div class="brand-title">Nexus Inclusivo</div>
+                    <div class="brand-subtitle">Reclutamiento del Futuro</div>
                 </div>
             </div>
             <div id="authStatus" class="hidden flex gap-3">
-                <div class="user-chip">
+                <div class="user-badge">
                     <i class="fas fa-shield-alt"></i>
                     <span id="userRole">Admin</span>
                 </div>
@@ -640,22 +608,40 @@ def serve_frontend():
     </header>
 
     <main class="container">
-        <section id="loginSection" class="card login-card">
-            <div class="text-center mb-6">
-                <div class="login-icon">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <h1 class="card-title text-center">Iniciar sesión</h1>
-                <p class="card-subtitle text-center">Accede a tu cuenta para continuar</p>
+        <section id="loginSection">
+            <div class="hero">
+                <h1 class="hero-title">Reclutamiento<br>del Futuro</h1>
+                <p class="hero-subtitle">Potenciado por Inteligencia Artificial</p>
+                <div class="typing-text" id="typingText"></div>
             </div>
-            <label class="field-label">Usuario</label>
-            <input id="loginUser" class="input" placeholder="tu.usuario">
-            <label class="field-label">Contraseña</label>
-            <input id="loginPass" class="input" type="password" placeholder="••••••••">
-            <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:12px;">
-                Ingresar al sistema
-            </button>
-            <p id="loginError" class="hidden text-error mt-6 text-center"></p>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Ético y Privado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">IA</div>
+                    <div class="stat-label">Procesamiento Inteligente</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Disponibilidad Total</div>
+                </div>
+            </div>
+            
+            <div class="card" style="max-width:450px;margin:0 auto;">
+                <h2 class="card-title text-center">Iniciar sesión</h2>
+                <p class="card-subtitle text-center">Accede a tu cuenta</p>
+                <label class="field-label">Usuario</label>
+                <input id="loginUser" class="input" placeholder="tu.usuario">
+                <label class="field-label">Contraseña</label>
+                <input id="loginPass" class="input" type="password" placeholder="••••••••">
+                <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:12px;">
+                    Ingresar al sistema
+                </button>
+                <p id="loginError" class="hidden text-error mt-6 text-center"></p>
+            </div>
         </section>
 
         <section id="dashboard" class="hidden">
@@ -669,55 +655,39 @@ def serve_frontend():
             </div>
 
             <div id="analyzeSection" class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Procesamiento de currículum</h2>
-                    <p class="card-subtitle">Analiza un CV con inteligencia artificial de forma ética y privada</p>
-                </div>
+                <h2 class="card-title">Procesamiento de currículum</h2>
+                <p class="card-subtitle">Analiza un CV con inteligencia artificial</p>
                 
-                <label class="field-label">
-                    <i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)
-                </label>
+                <label class="field-label"><i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)</label>
                 <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input">
                 
-                <label class="field-label">
-                    <i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)
-                </label>
+                <label class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)</label>
                 <input id="cvWhatsapp" class="input" placeholder="">
-                <p class="text-muted" style="font-size:12px;margin-top:-14px;margin-bottom:20px;">
-                    Solo visible para administradores al revelar identidad
+                <p class="text-muted" style="font-size:12px;margin-top:-18px;margin-bottom:24px;">
+                    Solo visible para administradores
                 </p>
                 
-                <div class="divider">o</div>
+                <label class="field-label"><i class="fas fa-paste"></i> Texto del currículum</label>
+                <textarea id="cvText" rows="6" class="input" style="resize:vertical;" placeholder="Pega aquí el contenido del CV..."></textarea>
                 
-                <label class="field-label">
-                    <i class="fas fa-paste"></i> Texto del currículum
-                </label>
-                <textarea id="cvText" rows="6" class="input" style="resize:vertical;min-height:120px;" placeholder="Pega aquí el contenido del CV..."></textarea>
-                
-                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()" style="margin-top:12px;">
+                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()">
                     <i class="fas fa-magic"></i> Procesar con IA
                 </button>
                 <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
-                <div id="analyzeResult" class="hidden mt-6 text-center" style="color:var(--text-secondary);"></div>
+                <div id="analyzeResult" class="hidden mt-6 text-center"></div>
             </div>
 
             <div id="searchSection" class="card hidden">
-                <div class="card-header">
-                    <h2 class="card-title">Búsqueda de candidatos</h2>
-                    <p class="card-subtitle">Encuentra profesionales con el método Blind Hiring</p>
-                </div>
+                <h2 class="card-title">Búsqueda de candidatos</h2>
+                <p class="card-subtitle">Encuentra profesionales con Blind Hiring</p>
                 
-                <label class="field-label">
-                    <i class="fas fa-tags"></i> Habilidades requeridas
-                </label>
+                <label class="field-label"><i class="fas fa-tags"></i> Habilidades requeridas</label>
                 <input id="searchSkills" class="input" placeholder="Python, FastAPI, AWS">
                 
-                <label class="field-label">
-                    <i class="fas fa-percent"></i> Coincidencia mínima (%)
-                </label>
+                <label class="field-label"><i class="fas fa-percent"></i> Coincidencia mínima (%)</label>
                 <input id="searchMinMatch" type="number" value="50" class="input">
                 
-                <button class="btn btn-primary" onclick="buscarCandidatos()" style="margin-top:12px;">
+                <button class="btn btn-primary" onclick="buscarCandidatos()">
                     <i class="fas fa-search"></i> Buscar candidatos
                 </button>
                 <p id="searchError" class="hidden text-error mt-6 text-center"></p>
@@ -726,15 +696,117 @@ def serve_frontend():
         </section>
     </main>
 
-    <a class="wa-float" href="https://wa.me/5492993293669?text=Hola,%20quiero%20informacion%20sobre%20Nexus%20Inclusivo" target="_blank" title="Contacto institucional">
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <button class="chat-toggle" onclick="toggleChat()">
+            <i class="fas fa-comments"></i>
+        </button>
+        <div class="chat-box" id="chatBox">
+            <div class="chat-header">
+                <i class="fas fa-robot"></i> Asistente Virtual
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message bot">
+                    <div class="chat-bubble">¡Hola! 👋 Soy el asistente de Nexus Inclusivo. ¿En qué puedo ayudarte?</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input id="chatInput" class="chat-input" placeholder="Escribe tu consulta..." onkeypress="if(event.key==='Enter')sendChat()">
+                <button class="chat-send" onclick="sendChat()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <a class="wa-float" href="https://wa.me/5492993293669" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
-    
-    <footer class="footer">
-        © 2026 Nexus Inclusivo · Reclutamiento ético potenciado por IA
-    </footer>
 
     <script>
+        // Partículas
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Typing animation
+        const texts = [
+            'Procesamiento ético con IA',
+            'Blind Hiring garantizado',
+            'Búsqueda inteligente de talento',
+            'Privacidad por diseño'
+        ];
+        let textIndex = 0;
+        let charIndex = 0;
+        const typingElement = document.getElementById('typingText');
+
+        function typeText() {
+            if (charIndex < texts[textIndex].length) {
+                typingElement.textContent += texts[textIndex].charAt(charIndex);
+                charIndex++;
+                setTimeout(typeText, 50);
+            } else {
+                setTimeout(eraseText, 2000);
+            }
+        }
+
+        function eraseText() {
+            if (charIndex > 0) {
+                typingElement.textContent = texts[textIndex].substring(0, charIndex - 1);
+                charIndex--;
+                setTimeout(eraseText, 30);
+            } else {
+                textIndex = (textIndex + 1) % texts.length;
+                setTimeout(typeText, 500);
+            }
+        }
+
+        typeText();
+
+        // Chat
+        function toggleChat() {
+            document.getElementById('chatBox').classList.toggle('active');
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // User message
+            messagesContainer.innerHTML += `<div class="chat-message user"><div class="chat-bubble">${message}</div></div>`;
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Bot typing
+            messagesContainer.innerHTML += `<div class="chat-message bot" id="typing"><div class="chat-bubble"><i class="fas fa-spinner fa-spin"></i> Pensando...</div></div>`;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const res = await fetch(API_URL + '/chat/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                const data = await res.json();
+                
+                document.getElementById('typing').remove();
+                messagesContainer.innerHTML += `<div class="chat-message bot"><div class="chat-bubble">${data.response}</div></div>`;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (e) {
+                document.getElementById('typing').remove();
+                messagesContainer.innerHTML += `<div class="chat-message bot"><div class="chat-bubble">Lo siento, hubo un error. Intenta de nuevo.</div></div>`;
+            }
+        }
+
         var token = "";
         var API_URL = "https://cv-api-1-ps8r.onrender.com";
 
@@ -832,7 +904,7 @@ def serve_frontend():
                 }
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Error al procesar');
-                out.textContent = data.status === 'pendiente' ? 'Archivo recibido. Procesando en segundo plano...' : 'CV procesado correctamente.';
+                out.textContent = data.status === 'pendiente' ? 'Archivo recibido. Procesando...' : 'CV procesado correctamente.';
                 out.classList.remove('hidden');
             } catch (e) {
                 err.textContent = String(e.message);
@@ -866,7 +938,7 @@ def serve_frontend():
                 if (!res.ok) throw new Error(data.detail || 'Error al buscar');
                 box.innerHTML = '';
                 if (!data.total_encontrados) {
-                    box.innerHTML = '<p class="text-muted mt-6 text-center">No se encontraron candidatos con esos criterios.</p>';
+                    box.innerHTML = '<p class="text-muted mt-6 text-center">No se encontraron candidatos.</p>';
                     return;
                 }
                 var admin = getRole() === 'Admin';
@@ -875,37 +947,21 @@ def serve_frontend():
                     card.className = 'candidate';
                     
                     var skillsHtml = (c.skills_coincidentes || []).map(function (s) {
-                        return '<span class="skill-tag match">' + s + '</span>';
-                    }).join('');
-                    
-                    var otherSkills = (c.todas_las_skills_del_cv || []).filter(function (s) {
-                        return (c.skills_coincidentes || []).map(function (sc) { return sc.toLowerCase(); }).indexOf(s.toLowerCase()) === -1;
-                    });
-                    var otherHtml = otherSkills.map(function (s) {
                         return '<span class="skill-tag">' + s + '</span>';
                     }).join('');
                     
-                    var waBtn = c.whatsapp ? '<a class="btn btn-sm btn-whatsapp" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '" title="Contactar por WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
+                    var waBtn = c.whatsapp ? '<a class="btn btn-sm" style="background:var(--whatsapp);" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g, '') + '"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
                     var revealBtn = admin ? '<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar identidad</button>' : '';
                     
                     card.innerHTML =
-                        '<div class="candidate-header">' +
-                            '<div>' +
-                                '<div class="section-label">Perfil ciego</div>' +
-                                '<div class="candidate-id">' + c.perfil_ciego_id + '</div>' +
-                            '</div>' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
+                            '<div style="font-size:18px;font-weight:700;">' + c.perfil_ciego_id + '</div>' +
                             '<span class="match-badge">' + c.match_porcentaje + '% match</span>' +
                         '</div>' +
-                        '<div class="section-label">Habilidades coincidentes</div>' +
-                        '<div style="margin-bottom:20px;">' + (skillsHtml || '<span class="text-muted">Ninguna</span>') + '</div>' +
-                        (otherHtml ? '<div class="section-label">Otras habilidades</div><div style="margin-bottom:20px;">' + otherHtml + '</div>' : '') +
-                        '<div class="section-label">Perfil redactado (anónimo)</div>' +
-                        '<div class="redacted-text">' + (c.cv_redactado || 'Sin perfil redactado') + '</div>' +
-                        '<div class="candidate-actions">' +
-                            '<span class="privacy-note"><i class="fas fa-shield-alt"></i> Datos protegidos por privacidad</span>' +
-                            '<div style="display:flex;gap:10px;">' + waBtn + revealBtn + '</div>' +
-                        '</div>' +
-                        '<div class="identity-box hidden"></div>';
+                        '<div style="margin-bottom:20px;">' + skillsHtml + '</div>' +
+                        '<div style="background:var(--bg-primary);padding:16px;border-radius:10px;font-style:italic;color:#94a3b8;">' + (c.cv_redactado || 'Sin perfil') + '</div>' +
+                        '<div style="display:flex;gap:10px;margin-top:20px;">' + waBtn + revealBtn + '</div>' +
+                        '<div class="hidden identity-box"></div>';
                     box.appendChild(card);
                     
                     var rb = card.querySelector('.reveal-btn');
@@ -922,7 +978,7 @@ def serve_frontend():
         async function revelarIdentidad(id, btn, card) {
             var box = card.querySelector('.identity-box');
             box.classList.remove('hidden');
-            box.innerHTML = '<p style="color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Verificando permisos...</p>';
+            box.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Verificando...</p>';
             try {
                 var res = await fetch(API_URL + '/cvs/perfil/' + encodeURIComponent(id) + '/identidad', {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -930,21 +986,15 @@ def serve_frontend():
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Acceso denegado');
                 
-                var html = '<div style="margin-bottom:16px;"><span class="section-label">Revelado por</span><div style="color:var(--text-primary);font-weight:600;">' + data.identidad_revelada_por + '</div></div>';
-                
+                var html = '<p style="color:var(--accent-light);font-weight:600;">Revelado por: ' + data.identidad_revelada_por + '</p>';
                 if (data.whatsapp) {
-                    html += '<div style="margin-bottom:16px;"><span class="section-label">Contacto directo</span><div style="color:var(--success);font-weight:600;"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</div></div>';
+                    html += '<p style="color:var(--success);"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</p>';
                 }
-                
-                html += '<div class="section-label">Texto original completo</div>';
-                html += '<pre>' + data.texto_original_completo + '</pre>';
+                html += '<pre style="white-space:pre-wrap;color:#cbd5e1;background:var(--bg-secondary);padding:16px;border-radius:10px;margin-top:12px;">' + data.texto_original_completo + '</pre>';
                 
                 box.innerHTML = html;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-check"></i> Revelado';
-                btn.style.background = 'var(--bg-tertiary)';
-                btn.style.color = 'var(--text-muted)';
-                btn.style.cursor = 'not-allowed';
             } catch (e) {
                 box.innerHTML = '<p style="color:#ef4444;">Error: ' + String(e.message) + '</p>';
             }

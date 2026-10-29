@@ -276,4 +276,44 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="CV no encontrado")
     db.delete(cv)
     db.commit()
+    class ChatRequest(BaseModel):
+    message: str
+
+@router.post("/chat/ask")
+async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
+    try:
+        # Contar estadísticas para dar contexto
+        total_cvs = db.query(CVDB).count()
+        cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": f"""Eres el asistente virtual de Nexus Inclusivo, una plataforma de reclutamiento ético con IA.
+
+Datos de la plataforma:
+- Total de CVs en el sistema: {total_cvs}
+- CVs procesados con IA: {cvs_procesados}
+- Tecnologías: FastAPI, PostgreSQL, OpenAI GPT-4o-mini
+- Características principales:
+  * Procesamiento de CVs con IA (extracción de habilidades)
+  * Blind Hiring (contratación ciega)
+  * Revelado de identidad solo para administradores
+  * Auditoría de accesos
+  * Integración con WhatsApp
+  * Búsqueda inteligente por habilidades
+
+Responde de forma amigable, profesional y concisa (máximo 3-4 oraciones). Si te preguntan sobre funcionalidades, explica brevemente. Si te saludan, responde cordialmente."""
+                },
+                {"role": "user", "content": request.message}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        return {"response": response.choices[0].message.content}
+    except Exception as e:
+        return {"response": "Lo siento, tuve un problema para procesar tu consulta. ¿Podrías intentar de nuevo?"}
     return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
