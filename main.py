@@ -226,6 +226,7 @@ def serve_frontend():
             mask-composite: exclude;
             opacity: 0;
             transition: opacity 0.3s;
+            pointer-events: none;
         }
         
         .card:hover::before { opacity: 1; }
