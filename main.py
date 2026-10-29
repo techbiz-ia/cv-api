@@ -654,6 +654,36 @@ def serve_frontend():
                     Ingresar al sistema
                 </button>
                 <p id="loginError" class="hidden text-error mt-6 text-center"></p>
+                            <!-- Separador -->
+            <div class="divider" style="margin: 24px 0;">o</div>
+            
+            <!-- Enlace para cambiar a registro -->
+            <p class="text-center text-muted" style="font-size: 14px;">
+                ¿No tienes cuenta? 
+                <a href="#" onclick="toggleRegister()" style="color: var(--accent-light); text-decoration: none; font-weight: 600;">Regístrate como candidato</a>
+            </p>
+
+            <!-- Formulario de Registro (Oculto por defecto) -->
+            <div id="registerForm" class="hidden" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+                <h3 class="card-title text-center" style="font-size: 20px;">Crear cuenta de candidato</h3>
+                <p class="card-subtitle text-center mb-6">Sube tu CV y participa en procesos de Blind Hiring</p>
+                
+                <label class="field-label">Nombre de usuario</label>
+                <input id="regUser" class="input" placeholder="ej. juan.perez">
+                
+                <label class="field-label">Contraseña</label>
+                <input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
+                
+                <button id="regBtn" class="btn btn-secondary" onclick="register()" style="margin-top: 12px;">
+                    <i class="fas fa-user-plus"></i> Registrarme
+                </button>
+                <p id="regError" class="hidden text-error mt-6 text-center"></p>
+                <p id="regSuccess" class="hidden mt-6 text-center" style="color: var(--success); font-weight: 600;"></p>
+                
+                <p class="text-center text-muted" style="font-size: 14px; margin-top: 16px;">
+                    ¿Ya tienes cuenta? 
+                    <a href="#" onclick="toggleRegister()" style="color: var(--accent-light); text-decoration: none; font-weight: 600;">Inicia sesión</a>
+                </p>
             </div>
         </section>
 
@@ -887,6 +917,96 @@ def serve_frontend():
         }
 
         function logout() {
+                // Alternar entre Login y Registro
+        function toggleRegister() {
+            const loginForm = document.querySelector('#loginSection .card > div:first-child'); // Título y campos de login
+            const registerForm = document.getElementById('registerForm');
+            const divider = document.querySelector('#loginSection .divider');
+            const toggleText = document.querySelector('#loginSection .text-center a')?.parentElement;
+
+            if (registerForm.classList.contains('hidden')) {
+                // Mostrar registro, ocultar login
+                document.getElementById('loginUser').parentElement.classList.add('hidden');
+                document.getElementById('loginPass').parentElement.classList.add('hidden');
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+                
+                registerForm.classList.remove('hidden');
+            } else {
+                // Mostrar login, ocultar registro
+                document.getElementById('loginUser').parentElement.classList.remove('hidden');
+                document.getElementById('loginPass').parentElement.classList.remove('hidden');
+                document.getElementById('loginBtn').classList.remove('hidden');
+                
+                registerForm.classList.add('hidden');
+                document.getElementById('regError').classList.add('hidden');
+                document.getElementById('regSuccess').classList.add('hidden');
+            }
+        }
+
+        // Función de Registro
+        async function register() {
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            const err = document.getElementById('regError');
+            const success = document.getElementById('regSuccess');
+            const btn = document.getElementById('regBtn');
+
+            err.classList.add('hidden');
+            success.classList.add('hidden');
+
+            if (!user || !pass) {
+                err.textContent = 'Completa todos los campos.';
+                err.classList.remove('hidden');
+                return;
+            }
+            if (pass.length < 6) {
+                err.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                err.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
+
+            try {
+                const res = await fetch(API_URL + '/usuarios/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre: user,
+                        password: pass,
+                        rol: "User" // Se registra como usuario normal (no Admin)
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.detail || 'Error al crear la cuenta. ¿El usuario ya existe?');
+                }
+
+                success.textContent = '¡Cuenta creada con éxito! Ahora puedes iniciar sesión.';
+                success.classList.remove('hidden');
+                
+                // Limpiar campos
+                document.getElementById('regUser').value = '';
+                document.getElementById('regPass').value = '';
+                
+                // Volver al login después de 2 segundos
+                setTimeout(() => {
+                    toggleRegister();
+                    document.getElementById('loginUser').value = user;
+                }, 2000);
+
+            } catch (e) {
+                err.textContent = String(e.message);
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Registrarme';
+            }
+        }
             token = "";
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('dashboard').classList.add('hidden');
