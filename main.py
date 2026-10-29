@@ -20,6 +20,16 @@ app.include_router(usuarios.router)
 app.include_router(cvs.router)
 
 @app.get("/health")
+@app.get("/migrate-db")
+def migrate_db():
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE cvs ADD COLUMN whatsapp VARCHAR;"))
+            conn.commit()
+        return {"mensaje": "✅ Columna 'whatsapp' agregada exitosamente a la base de datos."}
+    except Exception as e:
+        return {"mensaje": f"ℹ️ La columna probablemente ya existe o hubo un detalle: {str(e)}"}
 def health():
     return {"status": "ok"}
 
