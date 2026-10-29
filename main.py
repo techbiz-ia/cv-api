@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     print("Tablas verificadas.")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="5.0.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="6.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -34,26 +34,28 @@ def serve_frontend():
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Nexus Inclusivo · Plataforma de Reclutamiento Ético</title>
+    <title>Nexus Inclusivo · Reclutamiento Ético con IA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --border-subtle: #334155;
-            --border-muted: #475569;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #131825;
+            --bg-tertiary: #1a2133;
+            --bg-card: #151b2e;
+            --border-subtle: rgba(99, 102, 241, 0.15);
+            --border-hover: rgba(99, 102, 241, 0.4);
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
             --text-subtle: #64748b;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-dark: #4f46e5;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-3: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             --success: #10b981;
-            --success-hover: #059669;
-            --warning: #f59e0b;
-            --danger: #ef4444;
             --whatsapp: #25D366;
         }
         
@@ -66,64 +68,118 @@ def serve_frontend():
             min-height: 100vh;
             line-height: 1.6;
             font-size: 14px;
-            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
         }
         
-        /* Header corporativo */
+        /* Fondo con gradiente sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Header con borde gradiente */
         .header {
-            background: var(--bg-secondary);
+            background: rgba(19, 24, 37, 0.8);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-subtle);
-            padding: 16px 0;
+            padding: 18px 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.5;
         }
         
         .container {
             max-width: 1100px;
             margin: 0 auto;
             padding: 0 32px;
+            position: relative;
+            z-index: 1;
         }
         
         .flex { display: flex; align-items: center; }
         .justify-between { justify-content: space-between; }
         .gap-3 { gap: 12px; }
-        .gap-4 { gap: 16px; }
         
+        /* Logo con gradiente */
         .logo-mark {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-2);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         
-        .logo-mark i { color: white; font-size: 18px; }
+        .logo-mark::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .logo-mark i { color: white; font-size: 20px; position: relative; z-index: 1; }
         
         .brand-name {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
+            font-size: 18px;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
         }
         
         .brand-tagline {
             font-size: 12px;
             color: var(--text-muted);
             font-weight: 400;
+            margin-top: 1px;
         }
         
+        /* User chip */
         .user-chip {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-muted);
-            padding: 8px 14px;
-            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: 8px;
             font-size: 13px;
+            backdrop-filter: blur(10px);
         }
         
         .user-chip i { color: var(--success); font-size: 14px; }
@@ -131,284 +187,345 @@ def serve_frontend():
         
         .btn-logout {
             background: transparent;
-            border: 1px solid var(--border-muted);
+            border: 1px solid var(--border-subtle);
             color: var(--text-muted);
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
         }
         
         .btn-logout:hover {
-            background: var(--bg-tertiary);
+            background: rgba(99, 102, 241, 0.1);
             color: var(--text-primary);
-            border-color: var(--text-muted);
+            border-color: var(--border-hover);
         }
         
-        /* Cards y paneles */
+        /* Cards con bordes gradiente */
         .card {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 32px;
-            margin-top: 24px;
+            border-radius: 16px;
+            padding: 36px;
+            margin-top: 28px;
+            position: relative;
+            transition: all 0.3s ease;
         }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .card:hover::before { opacity: 1; }
         
         .card-header {
-            margin-bottom: 28px;
-            padding-bottom: 20px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
             border-bottom: 1px solid var(--border-subtle);
         }
         
         .card-title {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 4px;
-            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
         }
         
         .card-subtitle {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-muted);
+            font-weight: 400;
         }
         
-        /* Inputs */
+        /* Inputs modernos */
         .field-label {
             display: block;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-secondary);
             margin-bottom: 8px;
         }
         
-        .field-label i { color: var(--text-muted); margin-right: 6px; }
+        .field-label i { 
+            color: var(--accent-light); 
+            margin-right: 6px;
+            font-size: 12px;
+        }
         
         .input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: var(--bg-primary);
-            border: 1px solid var(--border-muted);
-            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 14px;
             font-family: inherit;
             outline: none;
-            transition: border-color 0.15s;
-            margin-bottom: 16px;
+            transition: all 0.2s;
+            margin-bottom: 20px;
         }
         
         .input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: var(--bg-secondary);
         }
         
         .input::placeholder { color: var(--text-subtle); }
         
-        /* Botones */
+        /* Botones con efectos */
         .btn {
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 12px 24px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
             border: none;
             color: white;
-            transition: all 0.15s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             font-family: inherit;
+            position: relative;
+            overflow: hidden;
         }
         
-        .btn:hover { transform: translateY(-1px); }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before { width: 300px; height: 300px; }
+        .btn:hover { transform: translateY(-2px); }
         .btn:active { transform: translateY(0); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
         .btn-primary {
-            background: var(--accent);
+            background: var(--gradient-2);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
             width: 100%;
         }
         
-        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:hover {
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+        }
         
         .btn-success {
-            background: var(--success);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
             width: 100%;
         }
         
-        .btn-success:hover { background: var(--success-hover); }
+        .btn-success:hover {
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+        }
         
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-secondary);
             width: 100%;
-            border: 1px solid var(--border-muted);
+            border: 1px solid var(--border-subtle);
         }
         
         .btn-secondary:hover {
-            background: var(--border-muted);
-            color: var(--text-primary);
+            background: var(--border-subtle);
+            border-color: var(--border-hover);
         }
         
         .btn-sm {
-            padding: 8px 14px;
+            padding: 8px 16px;
             font-size: 13px;
             width: auto;
         }
         
         .btn-whatsapp {
             background: var(--whatsapp);
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
         }
         
-        .btn-whatsapp:hover { background: #1fb855; }
+        .btn-whatsapp:hover {
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+        }
         
-        /* Tabs */
+        /* Tabs modernas */
         .tabs {
             display: flex;
-            gap: 4px;
-            background: var(--bg-secondary);
-            padding: 4px;
-            border-radius: 8px;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 6px;
+            border-radius: 12px;
             border: 1px solid var(--border-subtle);
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
         
         .tab {
             flex: 1;
-            padding: 10px 16px;
+            padding: 12px 20px;
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.15s;
+            border-radius: 8px;
+            transition: all 0.2s;
             font-family: inherit;
         }
         
         .tab:hover { color: var(--text-secondary); }
         
         .tab.active {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            font-weight: 600;
+            background: var(--gradient-2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
         
         /* Utilities */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
         .text-muted { color: var(--text-muted); }
-        .text-error { color: var(--danger); font-size: 13px; }
+        .text-error { color: #ef4444; font-size: 13px; }
         .mb-4 { margin-bottom: 16px; }
         .mb-6 { margin-bottom: 24px; }
         .mt-6 { margin-top: 24px; }
         
         /* Login */
         .login-card {
-            max-width: 400px;
+            max-width: 420px;
             margin: 80px auto;
         }
         
         .login-icon {
-            width: 56px;
-            height: 56px;
-            background: var(--accent);
-            border-radius: 12px;
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-2);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
         }
         
-        .login-icon i { color: white; font-size: 24px; }
+        .login-icon i { color: white; font-size: 28px; }
         
         /* Candidate cards */
         .candidate {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 24px;
-            margin-top: 16px;
-            transition: border-color 0.15s;
+            border-radius: 14px;
+            padding: 28px;
+            margin-top: 20px;
+            transition: all 0.3s;
+            position: relative;
         }
         
-        .candidate:hover { border-color: var(--border-muted); }
+        .candidate:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
         
         .candidate-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding-bottom: 16px;
-            margin-bottom: 16px;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--border-subtle);
         }
         
         .candidate-id {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: var(--text-primary);
-            font-family: 'SF Mono', Monaco, monospace;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
         }
         
         .match-badge {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--success);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 700;
         }
         
         .skill-tag {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 6px 12px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-muted);
-            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-secondary);
-            margin: 3px 3px 3px 0;
+            margin: 4px 4px 4px 0;
+            transition: all 0.2s;
+        }
+        
+        .skill-tag:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
         }
         
         .skill-tag.match {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-            color: #60a5fa;
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--accent-light);
         }
         
         .redacted-text {
             background: var(--bg-primary);
             border: 1px solid var(--border-subtle);
-            padding: 16px;
-            border-radius: 6px;
+            padding: 18px;
+            border-radius: 10px;
             font-size: 13px;
             color: var(--text-secondary);
             font-style: italic;
             line-height: 1.7;
-            margin: 16px 0;
+            margin: 20px 0;
         }
         
         .section-label {
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-subtle);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 8px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
         }
         
         .candidate-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            padding-top: 16px;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid var(--border-subtle);
             align-items: center;
             justify-content: space-between;
@@ -423,11 +540,11 @@ def serve_frontend():
         }
         
         .identity-box {
-            margin-top: 16px;
-            padding: 16px;
+            margin-top: 20px;
+            padding: 20px;
             background: var(--bg-primary);
             border: 1px solid var(--accent);
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 13px;
         }
         
@@ -435,65 +552,65 @@ def serve_frontend():
             white-space: pre-wrap;
             color: var(--text-secondary);
             background: var(--bg-secondary);
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
             font-family: 'SF Mono', Monaco, monospace;
             font-size: 12px;
-            line-height: 1.6;
+            line-height: 1.7;
         }
         
-        /* WhatsApp flotante discreto */
+        /* WhatsApp flotante con efecto */
         .wa-float {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 52px;
-            height: 52px;
+            bottom: 28px;
+            right: 28px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background: var(--whatsapp);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 26px;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
             z-index: 999;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
         
         .wa-float:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
         }
         
         /* Footer */
         .footer {
             text-align: center;
-            padding: 32px 0;
+            padding: 40px 0;
             color: var(--text-subtle);
             font-size: 12px;
             border-top: 1px solid var(--border-subtle);
-            margin-top: 48px;
+            margin-top: 60px;
         }
         
         /* Divider */
         .divider {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 24px 0;
+            gap: 16px;
+            margin: 28px 0;
             color: var(--text-subtle);
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
         }
         
         .divider::before, .divider::after {
             content: '';
             flex: 1;
             height: 1px;
-            background: var(--border-subtle);
+            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
         }
     </style>
 </head>
@@ -506,7 +623,7 @@ def serve_frontend():
                 </div>
                 <div>
                     <div class="brand-name">Nexus Inclusivo</div>
-                    <div class="brand-tagline">Plataforma de Reclutamiento Ético</div>
+                    <div class="brand-tagline">Reclutamiento Ético con IA</div>
                 </div>
             </div>
             <div id="authStatus" class="hidden flex gap-3">
@@ -534,7 +651,7 @@ def serve_frontend():
             <input id="loginUser" class="input" placeholder="tu.usuario">
             <label class="field-label">Contraseña</label>
             <input id="loginPass" class="input" type="password" placeholder="••••••••">
-            <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:8px;">
+            <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:12px;">
                 Ingresar al sistema
             </button>
             <p id="loginError" class="hidden text-error mt-6 text-center"></p>
@@ -564,8 +681,8 @@ def serve_frontend():
                 <label class="field-label">
                     <i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)
                 </label>
-                <input id="cvWhatsapp" class="input" placeholder="+54 9 299 329 3669">
-                <p class="text-muted" style="font-size:12px;margin-top:-10px;margin-bottom:16px;">
+                <input id="cvWhatsapp" class="input" placeholder="">
+                <p class="text-muted" style="font-size:12px;margin-top:-14px;margin-bottom:20px;">
                     Solo visible para administradores al revelar identidad
                 </p>
                 
@@ -576,7 +693,7 @@ def serve_frontend():
                 </label>
                 <textarea id="cvText" rows="6" class="input" style="resize:vertical;min-height:120px;" placeholder="Pega aquí el contenido del CV..."></textarea>
                 
-                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()" style="margin-top:8px;">
+                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()" style="margin-top:12px;">
                     <i class="fas fa-magic"></i> Procesar con IA
                 </button>
                 <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
@@ -599,7 +716,7 @@ def serve_frontend():
                 </label>
                 <input id="searchMinMatch" type="number" value="50" class="input">
                 
-                <button class="btn btn-primary" onclick="buscarCandidatos()" style="margin-top:8px;">
+                <button class="btn btn-primary" onclick="buscarCandidatos()" style="margin-top:12px;">
                     <i class="fas fa-search"></i> Buscar candidatos
                 </button>
                 <p id="searchError" class="hidden text-error mt-6 text-center"></p>
@@ -779,13 +896,13 @@ def serve_frontend():
                             '<span class="match-badge">' + c.match_porcentaje + '% match</span>' +
                         '</div>' +
                         '<div class="section-label">Habilidades coincidentes</div>' +
-                        '<div style="margin-bottom:16px;">' + (skillsHtml || '<span class="text-muted">Ninguna</span>') + '</div>' +
-                        (otherHtml ? '<div class="section-label">Otras habilidades</div><div style="margin-bottom:16px;">' + otherHtml + '</div>' : '') +
+                        '<div style="margin-bottom:20px;">' + (skillsHtml || '<span class="text-muted">Ninguna</span>') + '</div>' +
+                        (otherHtml ? '<div class="section-label">Otras habilidades</div><div style="margin-bottom:20px;">' + otherHtml + '</div>' : '') +
                         '<div class="section-label">Perfil redactado (anónimo)</div>' +
                         '<div class="redacted-text">' + (c.cv_redactado || 'Sin perfil redactado') + '</div>' +
                         '<div class="candidate-actions">' +
                             '<span class="privacy-note"><i class="fas fa-shield-alt"></i> Datos protegidos por privacidad</span>' +
-                            '<div style="display:flex;gap:8px;">' + waBtn + revealBtn + '</div>' +
+                            '<div style="display:flex;gap:10px;">' + waBtn + revealBtn + '</div>' +
                         '</div>' +
                         '<div class="identity-box hidden"></div>';
                     box.appendChild(card);
@@ -812,10 +929,10 @@ def serve_frontend():
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Acceso denegado');
                 
-                var html = '<div style="margin-bottom:12px;"><span class="section-label">Revelado por</span><div style="color:var(--text-primary);font-weight:600;">' + data.identidad_revelada_por + '</div></div>';
+                var html = '<div style="margin-bottom:16px;"><span class="section-label">Revelado por</span><div style="color:var(--text-primary);font-weight:600;">' + data.identidad_revelada_por + '</div></div>';
                 
                 if (data.whatsapp) {
-                    html += '<div style="margin-bottom:12px;"><span class="section-label">Contacto directo</span><div style="color:var(--success);font-weight:600;"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</div></div>';
+                    html += '<div style="margin-bottom:16px;"><span class="section-label">Contacto directo</span><div style="color:var(--success);font-weight:600;"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</div></div>';
                 }
                 
                 html += '<div class="section-label">Texto original completo</div>';
@@ -828,7 +945,7 @@ def serve_frontend():
                 btn.style.color = 'var(--text-muted)';
                 btn.style.cursor = 'not-allowed';
             } catch (e) {
-                box.innerHTML = '<p style="color:var(--danger);">Error: ' + String(e.message) + '</p>';
+                box.innerHTML = '<p style="color:#ef4444;">Error: ' + String(e.message) + '</p>';
             }
         }
     </script>
