@@ -287,6 +287,9 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
         total_cvs = db.query(CVDB).count()
         cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
         
+        print(f"🤖 Chatbot solicitado. Mensaje: {request.message}")
+        print(f"📊 Stats: Total CVs={total_cvs}, Procesados={cvs_procesados}")
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -316,4 +319,7 @@ Responde de forma amigable, profesional y concisa (máximo 3-4 oraciones). Si te
         
         return {"response": response.choices[0].message.content}
     except Exception as e:
-        return {"response": "Lo siento, tuve un problema para procesar tu consulta. ¿Podrías intentar de nuevo?"}
+        print(f"❌ ERROR EN CHATBOT: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"response": f"Error interno del servidor: {str(e)}"}
