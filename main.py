@@ -4,18 +4,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from app.database import Base, engine
 from app.routers import usuarios, cvs
-
 import app.models.usuarios
 import app.models.cv
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("Tablas verificadas.")
     yield
-
 app = FastAPI(title="Nexus Inclusivo API", version="7.0.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://cv-api-1-ps8r.onrender.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
 
@@ -784,28 +787,40 @@ def serve_frontend():
             document.getElementById('chatBox').classList.toggle('active');
         }
 
-        async function sendChat() {
+                async function sendChat() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
 
             const messagesContainer = document.getElementById('chatMessages');
             
-            // User message
             messagesContainer.innerHTML += `<div class="chat-message user"><div class="chat-bubble">${message}</div></div>`;
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Bot typing
             messagesContainer.innerHTML += `<div class="chat-message bot" id="typing"><div class="chat-bubble"><i class="fas fa-spinner fa-spin"></i> Pensando...</div></div>`;
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             try {
+                const headers = { 'Content-Type': 'application/json' };
+                
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+
                 const res = await fetch(API_URL + '/chat/ask', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify({ message: message })
                 });
+
+                if (res.status === 401) {
+                    document.getElementById('typing').remove();
+                    messagesContainer.innerHTML += `<div class="chat-message bot"><div class="chat-bubble">🔒 Por seguridad, debes <strong>iniciar sesión</strong> para usar el asistente virtual.</div></div>`;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    return;
+                }
+
                 const data = await res.json();
                 
                 document.getElementById('typing').remove();
@@ -813,7 +828,7 @@ def serve_frontend():
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } catch (e) {
                 document.getElementById('typing').remove();
-                messagesContainer.innerHTML += `<div class="chat-message bot"><div class="chat-bubble">Lo siento, hubo un error. Intenta de nuevo.</div></div>`;
+                messagesContainer.innerHTML += `<div class="chat-message bot"><div class="chat-bubble">Lo siento, hubo un error de conexión. Intenta de nuevo.</div></div>`;
             }
         }
 
@@ -879,6 +894,11 @@ def serve_frontend():
         }
 
         async function procesarCV() {
+        if (file && file.size > 5 * 1024 * 1024) { // 5 MB
+    err.textContent = 'El archivo es demasiado grande. Máximo 5MB.';
+    err.classList.remove('hidden');
+    return;
+}
             var file = document.getElementById('cvFile').files[0];
             var texto = document.getElementById('cvText').value.trim();
             var whatsapp = document.getElementById('cvWhatsapp').value.trim();

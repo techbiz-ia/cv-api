@@ -282,7 +282,9 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
 
 @router.post("/chat/ask")
-async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
+@router.post("/chat/ask")
+   async def chat_ask(request: ChatRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    # El resto del código se mantiene igual
     try:
         total_cvs = db.query(CVDB).count()
         cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
