@@ -42,6 +42,9 @@ class BusquedaRequisitos(BaseModel):
     skills_requeridas: list[str]
     min_match_porcentaje: int = 50
 
+class ChatRequest(BaseModel):
+    message: str
+
 def get_db():
     db = SessionLocal()
     try:
@@ -276,13 +279,11 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="CV no encontrado")
     db.delete(cv)
     db.commit()
-    class ChatRequest(BaseModel):
-    message: str
+    return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
 
 @router.post("/chat/ask")
 async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
     try:
-        # Contar estadísticas para dar contexto
         total_cvs = db.query(CVDB).count()
         cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
         
@@ -316,4 +317,3 @@ Responde de forma amigable, profesional y concisa (máximo 3-4 oraciones). Si te
         return {"response": response.choices[0].message.content}
     except Exception as e:
         return {"response": "Lo siento, tuve un problema para procesar tu consulta. ¿Podrías intentar de nuevo?"}
-    return {"mensaje": f"CV {cv_id} eliminado exitosamente"}
