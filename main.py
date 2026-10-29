@@ -652,6 +652,10 @@ def serve_frontend():
                 <input id="loginPass" class="input" type="password" placeholder="••••••••">
                 <button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:12px;">
                     Ingresar al sistema
+                                <p class="text-center text-muted" style="margin-top: 20px; font-size: 14px;">
+                ¿Eres candidato y no tienes cuenta? 
+                <a href="https://cv-api-1-ps8r.onrender.com/registro" style="color: var(--accent-light); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
+            </p>
                 </button>
                 <p id="loginError" class="hidden text-error mt-6 text-center"></p>
                             <!-- Separador -->
@@ -687,54 +691,73 @@ def serve_frontend():
             </div>
         </section>
 
-        <section id="dashboard" class="hidden">
-            <div class="tabs">
-                <button id="tab-analyze" class="tab active" onclick="showTab('analyze')">
-                    <i class="fas fa-file-alt"></i> Analizar CV
-                </button>
-                <button id="tab-search" class="tab" onclick="showTab('search')">
-                    <i class="fas fa-search"></i> Buscar candidatos
-                </button>
+                <section id="dashboard" class="hidden">
+            <!-- VISTA DE ADMINISTRADOR -->
+            <div id="adminView" class="hidden">
+                <div class="tabs">
+                    <button id="tab-analyze" class="tab active" onclick="showTab('analyze')">
+                        <i class="fas fa-file-alt"></i> Analizar CV
+                    </button>
+                    <button id="tab-search" class="tab" onclick="showTab('search')">
+                        <i class="fas fa-search"></i> Buscar candidatos
+                    </button>
+                </div>
+
+                <div id="analyzeSection" class="card">
+                    <h2 class="card-title">Procesamiento de currículum</h2>
+                    <p class="card-subtitle">Analiza un CV con inteligencia artificial</p>
+                    <label class="field-label"><i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)</label>
+                    <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input">
+                    <label class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)</label>
+                    <input id="cvWhatsapp" class="input" placeholder="">
+                    <p class="text-muted" style="font-size:12px;margin-top:-18px;margin-bottom:24px;">Solo visible para administradores</p>
+                    <label class="field-label"><i class="fas fa-paste"></i> Texto del currículum</label>
+                    <textarea id="cvText" rows="6" class="input" style="resize:vertical;" placeholder="Pega aquí el contenido del CV..."></textarea>
+                    <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()">
+                        <i class="fas fa-magic"></i> Procesar con IA
+                    </button>
+                    <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
+                    <div id="analyzeResult" class="hidden mt-6 text-center"></div>
+                </div>
+
+                <div id="searchSection" class="card hidden">
+                    <h2 class="card-title">Búsqueda de candidatos</h2>
+                    <p class="card-subtitle">Encuentra profesionales con Blind Hiring</p>
+                    <label class="field-label"><i class="fas fa-tags"></i> Habilidades requeridas</label>
+                    <input id="searchSkills" class="input" placeholder="Python, FastAPI, AWS">
+                    <label class="field-label"><i class="fas fa-percent"></i> Coincidencia mínima (%)</label>
+                    <input id="searchMinMatch" type="number" value="50" class="input">
+                    <button class="btn btn-primary" onclick="buscarCandidatos()">
+                        <i class="fas fa-search"></i> Buscar candidatos
+                    </button>
+                    <p id="searchError" class="hidden text-error mt-6 text-center"></p>
+                    <div id="searchResults" class="mt-6"></div>
+                </div>
             </div>
 
-            <div id="analyzeSection" class="card">
-                <h2 class="card-title">Procesamiento de currículum</h2>
-                <p class="card-subtitle">Analiza un CV con inteligencia artificial</p>
-                
-                <label class="field-label"><i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)</label>
-                <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input">
-                
-                <label class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)</label>
-                <input id="cvWhatsapp" class="input" placeholder="">
-                <p class="text-muted" style="font-size:12px;margin-top:-18px;margin-bottom:24px;">
-                    Solo visible para administradores
-                </p>
-                
-                <label class="field-label"><i class="fas fa-paste"></i> Texto del currículum</label>
-                <textarea id="cvText" rows="6" class="input" style="resize:vertical;" placeholder="Pega aquí el contenido del CV..."></textarea>
-                
-                <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()">
-                    <i class="fas fa-magic"></i> Procesar con IA
-                </button>
-                <p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
-                <div id="analyzeResult" class="hidden mt-6 text-center"></div>
-            </div>
-
-            <div id="searchSection" class="card hidden">
-                <h2 class="card-title">Búsqueda de candidatos</h2>
-                <p class="card-subtitle">Encuentra profesionales con Blind Hiring</p>
-                
-                <label class="field-label"><i class="fas fa-tags"></i> Habilidades requeridas</label>
-                <input id="searchSkills" class="input" placeholder="Python, FastAPI, AWS">
-                
-                <label class="field-label"><i class="fas fa-percent"></i> Coincidencia mínima (%)</label>
-                <input id="searchMinMatch" type="number" value="50" class="input">
-                
-                <button class="btn btn-primary" onclick="buscarCandidatos()">
-                    <i class="fas fa-search"></i> Buscar candidatos
-                </button>
-                <p id="searchError" class="hidden text-error mt-6 text-center"></p>
-                <div id="searchResults" class="mt-6"></div>
+            <!-- VISTA DE CANDIDATO (SIMPLIFICADA) -->
+            <div id="candidateView" class="hidden">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <div class="text-center mb-6">
+                        <div class="logo" style="margin: 0 auto 20px;">
+                            <i class="fas fa-user-astronaut"></i>
+                        </div>
+                        <h2 class="card-title">¡Bienvenido, Candidato!</h2>
+                        <p class="card-subtitle">Sube tu currículum para que nuestra IA lo procese de forma anónima y segura (Blind Hiring).</p>
+                    </div>
+                    
+                    <label class="field-label"><i class="fas fa-file-upload"></i> Sube tu CV (PDF, DOCX, TXT)</label>
+                    <input id="candCvFile" type="file" accept=".pdf,.docx,.txt" class="input">
+                    
+                    <label class="field-label"><i class="fab fa-whatsapp"></i> Tu WhatsApp (opcional, para contacto)</label>
+                    <input id="candWhatsapp" class="input" placeholder="+54 9 ...">
+                    
+                    <button id="candAnalyzeBtn" class="btn btn-primary" onclick="procesarCVCandidato()">
+                        <i class="fas fa-paper-plane"></i> Enviar mi CV
+                    </button>
+                    <p id="candError" class="hidden text-error mt-6 text-center"></p>
+                    <div id="candResult" class="hidden mt-6 text-center" style="color: var(--success); font-weight: 600;"></div>
+                </div>
             </div>
         </section>
     </main>
@@ -878,7 +901,7 @@ def serve_frontend():
             catch (e) { return 'User'; }
         }
 
-        async function login() {
+                async function login() {
             var user = document.getElementById('loginUser').value;
             var pass = document.getElementById('loginPass').value;
             var err = document.getElementById('loginError');
@@ -902,11 +925,24 @@ def serve_frontend():
                 });
                 var data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Credenciales incorrectas');
+                
                 token = data.access_token;
-                document.getElementById('userRole').textContent = getRole();
+                var role = getRole();
+                document.getElementById('userRole').textContent = role === 'Admin' ? 'Administrador' : 'Candidato';
+                
+                // Ocultar login, mostrar dashboard
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 document.getElementById('authStatus').classList.remove('hidden');
+                
+                // Mostrar vista según el rol
+                if (role === 'Admin') {
+                    document.getElementById('adminView').classList.remove('hidden');
+                    document.getElementById('candidateView').classList.add('hidden');
+                } else {
+                    document.getElementById('adminView').classList.add('hidden');
+                    document.getElementById('candidateView').classList.remove('hidden');
+                }
             } catch (e) {
                 err.textContent = String(e.message);
                 err.classList.remove('hidden');
@@ -1014,6 +1050,53 @@ def serve_frontend():
         }
 
         async function procesarCV() {
+                async function procesarCVCandidato() {
+            var file = document.getElementById('candCvFile').files[0];
+            var whatsapp = document.getElementById('candWhatsapp').value.trim();
+            var btn = document.getElementById('candAnalyzeBtn');
+            var err = document.getElementById('candError');
+            var out = document.getElementById('candResult');
+            
+            err.classList.add('hidden');
+            out.classList.add('hidden');
+            
+            if (!file) {
+                err.textContent = 'Por favor, selecciona un archivo.';
+                err.classList.remove('hidden');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            
+            try {
+                var fd = new FormData();
+                fd.append('file', file);
+                fd.append('whatsapp', whatsapp);
+                
+                var res = await fetch(API_URL + '/cvs/procesar-archivo', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: fd
+                });
+                
+                var data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Error al procesar');
+                
+                out.textContent = '✅ ¡CV enviado con éxito! Será procesado en breve.';
+                out.classList.remove('hidden');
+                
+                // Limpiar formulario
+                document.getElementById('candCvFile').value = '';
+                document.getElementById('candWhatsapp').value = '';
+            } catch (e) {
+                err.textContent = String(e.message);
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mi CV';
+            }
+        }
         if (file && file.size > 5 * 1024 * 1024) { // 5 MB
     err.textContent = 'El archivo es demasiado grande. Máximo 5MB.';
     err.classList.remove('hidden');
