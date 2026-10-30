@@ -1,20 +1,22 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import jwt
 from datetime import datetime, timedelta
+import jwt
 import os
+from passlib.context import CryptContext
 
 from app.database import SessionLocal
-from app.models.usuarios import UsuarioModel, obtener_password_hash, verificar_password
-from pydantic import BaseModel
+from app.models.usuarios import UsuarioModel
 
 router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="usuarios/login")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# 🔒 CONFIGURACIÓN DE SEGURIDAD JWT
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 def get_db():
     db = SessionLocal()
@@ -23,60 +25,56 @@ def get_db():
     finally:
         db.close()
 
-# SCHEMAS
+def validar_token_y_obtener_rol(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+    return payload
+
+def crear_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 class UsuarioCrear(BaseModel):
     nombre: str
-    rol: str
     password: str
-
-class UsuarioResponse(BaseModel):
-    id: int
-    nombre: str
-    rol: str
-    class Config:
-        from_attributes = True
+    rol: str = "User"
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-# 🔒 ENDPOINT 1: CREAR USUARIO
-@router.post("/usuarios/", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/usuarios/", status_code=201)
 def crear_usuario(usuario: UsuarioCrear, db: Session = Depends(get_db)):
-    db_user = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="El nombre de usuario ya está registrado")
-
-    hashed_password = obtener_password_hash(usuario.password)
+    db_usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
+    if db_usuario:
+        raise HTTPException(status_code=400, detail="El usuario ya existe.")
     
-    nuevo_usuario = UsuarioModel(
-        nombre=usuario.nombre,
-        rol=usuario.rol,
-        password=hashed_password
-    )
-    
+    hashed_password = pwd_context.hash(usuario.password)
+    nuevo_usuario = UsuarioModel(nombre=usuario.nombre, password=hashed_password, rol=usuario.rol)
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
-    return nuevo_usuario
+    return {"id": nuevo_usuario.id, "nombre": nuevo_usuario.nombre, "rol": nuevo_usuario.rol}
 
-# 🔒 ENDPOINT 2: LOGIN
 @router.post("/usuarios/login", response_model=Token)
 def login_usuario(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == form_data.username).first()
+    if not usuario or not pwd_context.verify(form_data.password, usuario.password):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
     
-    if not usuario or not verificar_password(form_data.password, usuario.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nombre de usuario o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = {"sub": usuario.nombre, "rol": usuario.rol, "exp": expire}
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    
-    return {"access_token": encoded_jwt, "token_type": "bearer"}
+    access_token = crear_token(data={"sub": usuario.nombre, "rol": usuario.rol})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# ==========================================
+# NUEVOS ENDPOINTS DE GESTIÓN DE USUARIOS
+# ==========================================
+
 @router.get("/usuarios/")
 def obtener_todos_los_usuarios(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     payload = validar_token_y_obtener_rol(token)
@@ -86,14 +84,14 @@ def obtener_todos_los_usuarios(db: Session = Depends(get_db), token: str = Depen
     usuarios = db.query(UsuarioModel).all()
     resultado = []
     for usuario in usuarios:
+        fecha = getattr(usuario, 'fecha_creacion', None)
         resultado.append({
             "id": usuario.id,
             "nombre": usuario.nombre,
             "rol": usuario.rol,
-            "fecha_creacion": usuario.fecha_creacion.isoformat() if usuario.fecha_creacion else None
+            "fecha_creacion": fecha.isoformat() if fecha else None
         })
     return resultado
-
 
 @router.delete("/usuarios/{usuario_id}")
 def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
@@ -111,7 +109,6 @@ def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), token: str 
     db.delete(usuario)
     db.commit()
     return {"mensaje": f"Usuario {usuario.nombre} eliminado exitosamente"}
-
 
 @router.put("/usuarios/{usuario_id}/rol")
 def cambiar_rol_usuario(usuario_id: int, nuevo_rol: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
