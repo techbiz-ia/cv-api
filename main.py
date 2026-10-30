@@ -216,9 +216,10 @@ def serve_frontend():
         <section id="dashboard" class="hidden">
             <!-- VISTA DE ADMINISTRADOR -->
             <div id="adminView" class="hidden">
-                <div class="tabs">
+                                <div class="tabs">
                     <button id="tab-analyze" class="tab active" onclick="showTab('analyze')"><i class="fas fa-file-alt"></i> Analizar CV</button>
                     <button id="tab-search" class="tab" onclick="showTab('search')"><i class="fas fa-search"></i> Buscar candidatos</button>
+                    <button id="tab-users" class="tab" onclick="showTab('users')"><i class="fas fa-users"></i> Usuarios</button>
                 </div>
                 <div id="analyzeSection" class="card">
                     <h2 class="card-title">Procesamiento de currículum</h2>
@@ -244,6 +245,22 @@ def serve_frontend():
                     <button class="btn btn-primary" onclick="buscarCandidatos()"><i class="fas fa-search"></i> Buscar candidatos</button>
                     <p id="searchError" class="hidden text-error mt-6 text-center"></p>
                     <div id="searchResults" class="mt-6"></div>
+                </div>
+                                <div id="usersSection" class="card hidden">
+                    <h2 class="card-title">Gestión de Usuarios</h2>
+                    <p class="card-subtitle">Administra los usuarios registrados en la plataforma</p>
+                    <button class="btn btn-primary" onclick="cargarUsuarios()" style="margin-bottom: 24px; width: auto; padding: 12px 24px;">
+                        <i class="fas fa-sync-alt"></i> Actualizar lista
+                    </button>
+                    <div id="usersList"></div>
+                </div>
+                                <div id="usersSection" class="card hidden">
+                    <h2 class="card-title">Gestión de Usuarios</h2>
+                    <p class="card-subtitle">Administra los usuarios registrados en la plataforma</p>
+                    <button class="btn btn-primary" onclick="cargarUsuarios()" style="margin-bottom: 24px; width: auto; padding: 12px 24px;">
+                        <i class="fas fa-sync-alt"></i> Actualizar lista
+                    </button>
+                    <div id="usersList"></div>
                 </div>
             </div>
 
@@ -395,12 +412,15 @@ def serve_frontend():
             try { return JSON.parse(atob(token.split('.')[1])).rol || 'User'; } catch (e) { return 'User'; }
         }
 
-        function showTab(name) {
+                      function showTab(name) {
             document.getElementById('analyzeSection').classList.add('hidden');
             document.getElementById('searchSection').classList.add('hidden');
+            document.getElementById('usersSection').classList.add('hidden');
             document.getElementById(name + 'Section').classList.remove('hidden');
             document.getElementById('tab-analyze').className = name === 'analyze' ? 'tab active' : 'tab';
             document.getElementById('tab-search').className = name === 'search' ? 'tab active' : 'tab';
+            document.getElementById('tab-users').className = name === 'users' ? 'tab active' : 'tab';
+            if (name === 'users') cargarUsuarios();
         }
 
         async function procesarCV() {
@@ -536,6 +556,50 @@ def serve_frontend():
             } catch (e) { console.log('Error cargando estadísticas:', e); }
         }
         cargarEstadisticas();
+                async function cargarUsuarios() {
+            const list = document.getElementById('usersList');
+            list.innerHTML = '<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</p>';
+            try {
+                const res = await fetch(API_URL + '/usuarios/', { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Error al cargar usuarios');
+                if (data.length === 0) { list.innerHTML = '<p class="text-muted text-center">No hay usuarios registrados.</p>'; return; }
+                let html = '<div style="display: grid; gap: 16px;">';
+                data.forEach(u => {
+                    const fecha = u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString('es-AR') : 'N/A';
+                    const rolBadge = u.rol === 'Admin' 
+                        ? '<span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">Admin</span>'
+                        : '<span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">Candidato</span>';
+                    html += '<div style="background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;"><div><div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">' + u.nombre + '</div><div style="font-size: 12px; color: #94a3b8;">Registrado: ' + fecha + '</div></div><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">' + rolBadge + '<button onclick="cambiarRol(' + u.id + ', \'' + (u.rol === 'Admin' ? 'User' : 'Admin') + '\')" class="btn btn-sm btn-secondary" style="width: auto; padding: 8px 12px; font-size: 12px;"><i class="fas fa-exchange-alt"></i> Cambiar rol</button><button onclick="eliminarUsuario(' + u.id + ', \'' + u.nombre + '\')" class="btn btn-sm" style="width: auto; padding: 8px 12px; font-size: 12px; background: #ef4444;"><i class="fas fa-trash"></i> Eliminar</button></div></div>';
+                });
+                html += '</div>';
+                list.innerHTML = html;
+            } catch (e) {
+                list.innerHTML = '<p class="text-error text-center">Error: ' + String(e.message) + '</p>';
+            }
+        }
+
+        async function cambiarRol(userId, nuevoRol) {
+            if (!confirm('¿Estás seguro de cambiar el rol a ' + nuevoRol + '?')) return;
+            try {
+                const res = await fetch(API_URL + '/usuarios/' + userId + '/rol?nuevo_rol=' + nuevoRol, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Error al cambiar rol');
+                alert('✅ ' + data.mensaje);
+                cargarUsuarios();
+            } catch (e) { alert('❌ Error: ' + String(e.message)); }
+        }
+
+        async function eliminarUsuario(userId, nombre) {
+            if (!confirm('¿Estás seguro de eliminar al usuario "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+            try {
+                const res = await fetch(API_URL + '/usuarios/' + userId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Error al eliminar usuario');
+                alert('✅ ' + data.mensaje);
+                cargarUsuarios();
+            } catch (e) { alert('❌ Error: ' + String(e.message)); }
+        }
     </script>
 </body>
 </html>
