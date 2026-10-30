@@ -21,7 +21,8 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️ Info migración: {e}")
     yield
-app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
+
+app = FastAPI(title="Nexus Inclusivo API", version="14.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["https://cv-api-1-ps8r.onrender.com"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -36,7 +37,7 @@ def serve_frontend():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexus Inclusivo · Reclutamiento del Futuro</title>
+<title>Nexus Inclusivo · Comunidad 360 IA</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -50,8 +51,9 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .logo-icon{width:56px;height:56px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(99,102,241,0.6);animation:pulse-glow 2s ease-in-out infinite}
 @keyframes pulse-glow{0%,100%{box-shadow:0 0 30px rgba(99,102,241,0.6)}50%{box-shadow:0 0 50px rgba(99,102,241,0.9)}}
 .logo-icon i{color:white;font-size:28px}
-.logo-text{font-size:26px;font-weight:900;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:gradient-shift 3s ease infinite}
+.logo-text{font-size:26px;font-weight:900;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:gradient-shift 3s ease infinite;line-height:1.2}
 @keyframes gradient-shift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.logo-company{font-size:11px;color:#a5b4fc;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-top:4px}
 .user-info{display:flex;align-items:center;gap:16px}
 .user-badge{background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.4);padding:12px 20px;border-radius:12px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
 .user-badge i{color:#10b981;font-size:18px}
@@ -63,6 +65,8 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .typing-text{font-size:18px;color:#818cf8;font-weight:600;min-height:28px;margin-top:12px}
 .typing-text::after{content:'|';animation:blink 1s infinite}
 @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.company-banner{margin-top:24px;padding:16px 32px;background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.4);border-radius:12px;display:inline-block}
+.company-banner-text{font-size:14px;color:#a5b4fc;font-weight:800;letter-spacing:3px;text-transform:uppercase}
 .card{background:rgba(30,41,59,0.7);backdrop-filter:blur(20px);border:2px solid rgba(99,102,241,0.2);border-radius:20px;padding:40px;margin-bottom:32px;transition:all 0.3s}
 .card:hover{border-color:rgba(99,102,241,0.5);box-shadow:0 8px 40px rgba(99,102,241,0.2)}
 .card-title{font-size:28px;font-weight:800;margin-bottom:12px;color:#f1f5f9}
@@ -136,6 +140,8 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .chat-send{padding:12px 20px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:12px;color:white;cursor:pointer;font-size:15px;font-weight:700}
 .wa-float{position:fixed;bottom:32px;right:32px;width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;color:white;font-size:32px;box-shadow:0 8px 40px rgba(37,211,102,0.6);z-index:999;text-decoration:none;transition:all 0.3s}
 .wa-float:hover{transform:scale(1.1);box-shadow:0 12px 50px rgba(37,211,102,0.8)}
+.footer{text-align:center;padding:40px 20px;color:#64748b;font-size:13px;border-top:1px solid rgba(99,102,241,0.2);margin-top:60px;position:relative;z-index:1}
+.footer strong{color:#818cf8}
 </style>
 </head>
 <body>
@@ -143,7 +149,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <div class="header-content">
 <div class="logo">
 <div class="logo-icon"><i class="fas fa-brain"></i></div>
+<div>
 <div class="logo-text">Nexus Inclusivo</div>
+<div class="logo-company">COMUNIDAD 360 IA | TECHBIZ</div>
+</div>
 </div>
 <div id="authStatus" class="hidden user-info">
 <div class="user-badge"><i class="fas fa-shield-alt"></i><span id="userRole">Admin</span></div>
@@ -158,6 +167,9 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <h1 class="hero-title">Reclutamiento del Futuro</h1>
 <p class="hero-subtitle">Potenciado por Inteligencia Artificial</p>
 <div class="typing-text" id="typingText"></div>
+<div class="company-banner">
+<div class="company-banner-text">COMUNIDAD 360 IA | TECHBIZ</div>
+</div>
 </div>
 
 <div class="stats-grid">
@@ -301,13 +313,17 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 </div>
 </div>
 
-<a class="wa-float" href="https://wa.me/5492993293669" target="_blank" title="Contacto"><i class="fab fa-whatsapp"></i></a>
+<a class="wa-float" href="https://wa.me/542996836693" target="_blank" title="Contacto"><i class="fab fa-whatsapp"></i></a>
+
+<footer class="footer">
+<p style="margin-bottom:8px;">© 2026 <strong style="font-size:15px;">Comunidad 360 IA</strong>. Todos los derechos reservados.</p>
+<p>Plataforma desarrollada con ❤️ por <strong>TechBiz</strong></p>
+</footer>
 
 <script>
 var token="";
 var API_URL="https://cv-api-1-ps8r.onrender.com";
 
-// Typing animation
 var typingTexts=['Procesamiento ético con IA','Blind Hiring garantizado','Búsqueda inteligente de talento','Privacidad por diseño'];
 var typingIndex=0,typingCharIndex=0;
 var typingElement=document.getElementById('typingText');
@@ -327,17 +343,8 @@ function eraseText(){
 }
 typeText();
 
-function showRegisterForm(){
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('registerForm').classList.remove('hidden');
-}
-
-function showLoginForm(){
-    document.getElementById('registerForm').classList.add('hidden');
-    document.getElementById('loginForm').classList.remove('hidden');
-    document.getElementById('regError').classList.add('hidden');
-    document.getElementById('regSuccess').classList.add('hidden');
-}
+function showRegisterForm(){document.getElementById('loginForm').classList.add('hidden');document.getElementById('registerForm').classList.remove('hidden');}
+function showLoginForm(){document.getElementById('registerForm').classList.add('hidden');document.getElementById('loginForm').classList.remove('hidden');document.getElementById('regError').classList.add('hidden');document.getElementById('regSuccess').classList.add('hidden');}
 
 async function register(){
     var user=document.getElementById('regUser').value.trim();
@@ -345,20 +352,16 @@ async function register(){
     var err=document.getElementById('regError');
     var success=document.getElementById('regSuccess');
     var btn=document.getElementById('regBtn');
-    err.classList.add('hidden');
-    success.classList.add('hidden');
+    err.classList.add('hidden');success.classList.add('hidden');
     if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
     if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.classList.remove('hidden');return;}
-    btn.disabled=true;
-    btn.textContent='Creando cuenta...';
+    btn.disabled=true;btn.textContent='Creando cuenta...';
     try{
         var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,password:pass,rol:"User"})});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al crear la cuenta.');
-        success.textContent='✅ ¡Cuenta creada con éxito!';
-        success.classList.remove('hidden');
-        document.getElementById('regUser').value='';
-        document.getElementById('regPass').value='';
+        success.textContent='✅ ¡Cuenta creada con éxito!';success.classList.remove('hidden');
+        document.getElementById('regUser').value='';document.getElementById('regPass').value='';
         setTimeout(function(){showLoginForm();document.getElementById('loginUser').value=user;},2000);
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.textContent='Registrarme';}
@@ -371,11 +374,8 @@ async function login(){
     var btn=document.getElementById('loginBtn');
     err.classList.add('hidden');
     if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
-    btn.disabled=true;
-    btn.textContent='Conectando...';
-    var body=new URLSearchParams();
-    body.append('username',user);
-    body.append('password',pass);
+    btn.disabled=true;btn.textContent='Conectando...';
+    var body=new URLSearchParams();body.append('username',user);body.append('password',pass);
     try{
         var res=await fetch(API_URL+'/usuarios/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body});
         var data=await res.json();
@@ -386,36 +386,20 @@ async function login(){
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
         document.getElementById('authStatus').classList.remove('hidden');
-        if(role==='Admin'){
-            document.getElementById('adminView').classList.remove('hidden');
-            document.getElementById('candidateView').classList.add('hidden');
-        }else{
-            document.getElementById('adminView').classList.add('hidden');
-            document.getElementById('candidateView').classList.remove('hidden');
-        }
+        if(role==='Admin'){document.getElementById('adminView').classList.remove('hidden');document.getElementById('candidateView').classList.add('hidden');}
+        else{document.getElementById('adminView').classList.add('hidden');document.getElementById('candidateView').classList.remove('hidden');}
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.textContent='Ingresar al sistema';}
 }
 
-function logout(){
-    token="";
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('authStatus').classList.add('hidden');
-}
-
-function getRole(){
-    try{return JSON.parse(atob(token.split('.')[1])).rol||'User';}catch(e){return 'User';}
-}
+function logout(){token="";document.getElementById('loginSection').classList.remove('hidden');document.getElementById('dashboard').classList.add('hidden');document.getElementById('authStatus').classList.add('hidden');}
+function getRole(){try{return JSON.parse(atob(token.split('.')[1])).rol||'User';}catch(e){return 'User';}}
 
 function showTab(name){
     var sections=['analyze','search','cvs','users'];
     sections.forEach(function(s){document.getElementById(s+'Section').classList.add('hidden');});
     document.getElementById(name+'Section').classList.remove('hidden');
-    sections.forEach(function(s){
-        var tab=document.getElementById('tab-'+s);
-        if(tab) tab.className=s===name?'tab active':'tab';
-    });
+    sections.forEach(function(s){var tab=document.getElementById('tab-'+s);if(tab) tab.className=s===name?'tab active':'tab';});
     if(name==='users') cargarUsuarios();
     if(name==='cvs') cargarCVs();
 }
@@ -427,25 +411,16 @@ async function procesarCV(){
     var btn=document.getElementById('analyzeBtn');
     var err=document.getElementById('analyzeError');
     var out=document.getElementById('analyzeResult');
-    err.classList.add('hidden');
-    out.classList.add('hidden');
+    err.classList.add('hidden');out.classList.add('hidden');
     if(!file&&!texto){err.textContent='Sube un archivo o pega el texto.';err.classList.remove('hidden');return;}
-    btn.disabled=true;
-    btn.textContent='Procesando...';
+    btn.disabled=true;btn.textContent='Procesando...';
     try{
         var res;
-        if(file){
-            var fd=new FormData();
-            fd.append('file',file);
-            fd.append('whatsapp',whatsapp);
-            res=await fetch(API_URL+'/cvs/procesar-archivo',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
-        }else{
-            res=await fetch(API_URL+'/cvs/procesar-ia',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({texto_cv:texto,whatsapp:whatsapp})});
-        }
+        if(file){var fd=new FormData();fd.append('file',file);fd.append('whatsapp',whatsapp);res=await fetch(API_URL+'/cvs/procesar-archivo',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});}
+        else{res=await fetch(API_URL+'/cvs/procesar-ia',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({texto_cv:texto,whatsapp:whatsapp})});}
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al procesar');
-        out.textContent=data.status==='pendiente'?'✅ Archivo recibido. Procesando...':'✅ CV procesado correctamente.';
-        out.classList.remove('hidden');
+        out.textContent=data.status==='pendiente'?'✅ Archivo recibido. Procesando...':'✅ CV procesado correctamente.';out.classList.remove('hidden');
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> Procesar con IA';}
 }
@@ -456,22 +431,16 @@ async function procesarCVCandidato(){
     var btn=document.getElementById('candAnalyzeBtn');
     var err=document.getElementById('candError');
     var out=document.getElementById('candResult');
-    err.classList.add('hidden');
-    out.classList.add('hidden');
+    err.classList.add('hidden');out.classList.add('hidden');
     if(!file){err.textContent='Por favor, selecciona un archivo.';err.classList.remove('hidden');return;}
-    btn.disabled=true;
-    btn.textContent='Enviando...';
+    btn.disabled=true;btn.textContent='Enviando...';
     try{
-        var fd=new FormData();
-        fd.append('file',file);
-        fd.append('whatsapp',whatsapp);
+        var fd=new FormData();fd.append('file',file);fd.append('whatsapp',whatsapp);
         var res=await fetch(API_URL+'/cvs/procesar-archivo',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al procesar');
-        out.textContent='✅ ¡CV enviado con éxito!';
-        out.classList.remove('hidden');
-        document.getElementById('candCvFile').value='';
-        document.getElementById('candWhatsapp').value='';
+        out.textContent='✅ ¡CV enviado con éxito!';out.classList.remove('hidden');
+        document.getElementById('candCvFile').value='';document.getElementById('candWhatsapp').value='';
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar CV';}
 }
@@ -493,8 +462,7 @@ async function buscarCandidatos(){
         if(!data.total_encontrados){box.innerHTML='<p class="text-muted mt-4 text-center">No se encontraron candidatos.</p>';return;}
         var admin=getRole()==='Admin';
         data.candidatos.forEach(function(c){
-            var card=document.createElement('div');
-            card.className='cv-card';
+            var card=document.createElement('div');card.className='cv-card';
             var skillsHtml=(c.skills_coincidentes||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
             var waBtn=c.whatsapp?'<a class="btn btn-sm" style="background:#25D366;" target="_blank" href="https://wa.me/'+c.whatsapp.replace(/[^0-9]/g,'')+'"><i class="fab fa-whatsapp"></i> WhatsApp</a>':'';
             var revealBtn=admin?'<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar</button>':'';
@@ -507,8 +475,7 @@ async function buscarCandidatos(){
 }
 
 async function revelarIdentidad(id,btn,card){
-    var box=card.querySelector('.identity-box');
-    box.classList.remove('hidden');
+    var box=card.querySelector('.identity-box');box.classList.remove('hidden');
     box.innerHTML='<p><i class="fas fa-spinner fa-spin"></i> Verificando...</p>';
     try{
         var res=await fetch(API_URL+'/cvs/perfil/'+encodeURIComponent(id)+'/identidad',{headers:{'Authorization':'Bearer '+token}});
@@ -517,9 +484,7 @@ async function revelarIdentidad(id,btn,card){
         var html='<p style="color:#818cf8;font-weight:700;margin-bottom:10px;">Revelado por: '+data.identidad_revelada_por+'</p>';
         if(data.whatsapp){html+='<p style="color:#10b981;margin-bottom:10px;"><i class="fab fa-whatsapp"></i> '+data.whatsapp+'</p>';}
         html+='<pre style="white-space:pre-wrap;color:#cbd5e1;background:rgba(15,23,42,0.8);padding:14px;border-radius:10px;margin-top:10px;font-size:12px;">'+data.texto_original_completo+'</pre>';
-        box.innerHTML=html;
-        btn.disabled=true;
-        btn.textContent='Revelado';
+        box.innerHTML=html;btn.disabled=true;btn.textContent='Revelado';
     }catch(e){box.innerHTML='<p style="color:#ef4444;">Error: '+String(e.message)+'</p>';}
 }
 
@@ -536,11 +501,7 @@ async function cargarCVs(){
             var statusClass=cv.status==='procesado'?'status-procesado':cv.status==='pendiente'?'status-pendiente':'status-error';
             var statusText=cv.status.charAt(0).toUpperCase()+cv.status.slice(1);
             var skillsHtml=(cv.skills||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
-            html+='<div class="cv-card">';
-            html+='<div class="cv-header">';
-            html+='<div class="cv-id"><i class="fas fa-file-alt" style="color:#818cf8;margin-right:8px;"></i>'+cv.perfil_ciego_id+'</div>';
-            html+='<span class="cv-status '+statusClass+'">'+statusText+'</span>';
-            html+='</div>';
+            html+='<div class="cv-card"><div class="cv-header"><div class="cv-id"><i class="fas fa-file-alt" style="color:#818cf8;margin-right:8px;"></i>'+cv.perfil_ciego_id+'</div><span class="cv-status '+statusClass+'">'+statusText+'</span></div>';
             if(cv.whatsapp){html+='<div style="color:#10b981;font-size:13px;margin-bottom:8px;"><i class="fab fa-whatsapp"></i> '+cv.whatsapp+'</div>';}
             if(skillsHtml){html+='<div class="cv-skills"><strong style="color:#cbd5e1;font-size:13px;">Habilidades:</strong><br>'+skillsHtml+'</div>';}
             if(cv.texto_redactado){html+='<div class="cv-text">'+cv.texto_redactado+'</div>';}
@@ -564,17 +525,7 @@ async function cargarUsuarios(){
             var rolClass=u.rol==='Admin'?'role-admin':'role-user';
             var rolText=u.rol==='Admin'?'Admin':'Candidato';
             var nuevoRol=u.rol==='Admin'?'User':'Admin';
-            html+='<div class="user-card">';
-            html+='<div style="flex:1;">';
-            html+='<div class="user-name"><i class="fas fa-user" style="color:#818cf8;margin-right:8px;"></i>'+u.nombre+'</div>';
-            html+='<div class="user-date">Registrado: '+fecha+'</div>';
-            html+='</div>';
-            html+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
-            html+='<span class="role-badge '+rolClass+'">'+rolText+'</span>';
-            html+='<button class="btn btn-sm btn-secondary" data-action="cambiar" data-id="'+u.id+'" data-rol="'+nuevoRol+'"><i class="fas fa-exchange-alt"></i> Cambiar</button>';
-            html+='<button class="btn btn-sm btn-danger" data-action="eliminar" data-id="'+u.id+'" data-nombre="'+u.nombre+'"><i class="fas fa-trash"></i></button>';
-            html+='</div>';
-            html+='</div>';
+            html+='<div class="user-card"><div style="flex:1;"><div class="user-name"><i class="fas fa-user" style="color:#818cf8;margin-right:8px;"></i>'+u.nombre+'</div><div class="user-date">Registrado: '+fecha+'</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><span class="role-badge '+rolClass+'">'+rolText+'</span><button class="btn btn-sm btn-secondary" data-action="cambiar" data-id="'+u.id+'" data-rol="'+nuevoRol+'"><i class="fas fa-exchange-alt"></i> Cambiar</button><button class="btn btn-sm btn-danger" data-action="eliminar" data-id="'+u.id+'" data-nombre="'+u.nombre+'"><i class="fas fa-trash"></i></button></div></div>';
         });
         list.innerHTML=html;
         list.querySelectorAll('[data-action="cambiar"]').forEach(function(btn){btn.addEventListener('click',function(){cambiarRol(btn.dataset.id,btn.dataset.rol);});});
@@ -588,8 +539,7 @@ async function cambiarRol(userId,nuevoRol){
         var res=await fetch(API_URL+'/usuarios/'+userId+'/rol?nuevo_rol='+nuevoRol,{method:'PUT',headers:{'Authorization':'Bearer '+token}});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error');
-        alert('✅ '+data.mensaje);
-        cargarUsuarios();
+        alert('✅ '+data.mensaje);cargarUsuarios();
     }catch(e){alert('❌ Error: '+String(e.message));}
 }
 
@@ -599,8 +549,7 @@ async function eliminarUsuario(userId,nombre){
         var res=await fetch(API_URL+'/usuarios/'+userId,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error');
-        alert('✅ '+data.mensaje);
-        cargarUsuarios();
+        alert('✅ '+data.mensaje);cargarUsuarios();
     }catch(e){alert('❌ Error: '+String(e.message));}
 }
 
@@ -612,8 +561,7 @@ async function sendChat(){
     if(!message) return;
     var messagesContainer=document.getElementById('chatMessages');
     messagesContainer.innerHTML+='<div class="chat-message user"><div class="chat-bubble">'+message+'</div></div>';
-    input.value='';
-    messagesContainer.scrollTop=messagesContainer.scrollHeight;
+    input.value='';messagesContainer.scrollTop=messagesContainer.scrollHeight;
     messagesContainer.innerHTML+='<div class="chat-message bot" id="typing"><div class="chat-bubble"><i class="fas fa-spinner fa-spin"></i> Pensando...</div></div>';
     messagesContainer.scrollTop=messagesContainer.scrollHeight;
     try{
@@ -623,8 +571,7 @@ async function sendChat(){
         if(res.status===401){
             document.getElementById('typing').remove();
             messagesContainer.innerHTML+='<div class="chat-message bot"><div class="chat-bubble">🔒 Debes iniciar sesión para usar el chat.</div></div>';
-            messagesContainer.scrollTop=messagesContainer.scrollHeight;
-            return;
+            messagesContainer.scrollTop=messagesContainer.scrollHeight;return;
         }
         var data=await res.json();
         document.getElementById('typing').remove();
