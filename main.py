@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
         print(f"⚠️ Info whatsapp: {e}")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="9.1.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="10.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["https://cv-api-1-ps8r.onrender.com"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -35,109 +35,100 @@ def serve_frontend():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Nexus Inclusivo</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-card:#1a1a25;--accent:#6366f1;--accent-light:#818cf8;--success:#10b981;--whatsapp:#25D366;--border-subtle:rgba(99,102,241,0.2)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:#f1f5f9;min-height:100vh}
-.header{background:rgba(18,18,26,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-subtle);padding:20px 0;position:sticky;top:0;z-index:100}
-.container{max-width:1200px;margin:0 auto;padding:0 32px}
-.flex{display:flex;align-items:center}.justify-between{justify-content:space-between}.gap-3{gap:12px}
-.logo{width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.logo i{color:white;font-size:24px}
-.brand-title{font-size:24px;font-weight:900;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.brand-subtitle{font-size:12px;color:#94a3b8;margin-top:2px}
-.user-badge{display:flex;align-items:center;gap:10px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600}
-.user-badge i{color:var(--success)}
-.btn-logout{background:transparent;border:1px solid rgba(148,163,184,0.3);color:#94a3b8;padding:10px 16px;border-radius:10px;font-size:13px;cursor:pointer}
-.btn-logout:hover{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.5)}
-.hero{text-align:center;padding:60px 0 40px}
-.hero-title{font-size:48px;font-weight:900;background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
-.hero-subtitle{font-size:18px;color:#94a3b8;margin-bottom:32px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin:40px 0}
-.stat-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:16px;padding:32px;text-align:center}
-.stat-number{font-size:48px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
-.stat-label{font-size:14px;color:#94a3b8;font-weight:500}
-.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:20px;padding:40px;margin-top:32px}
-.card-title{font-size:28px;font-weight:800;margin-bottom:8px;color:#f1f5f9}
-.card-subtitle{font-size:15px;color:#94a3b8;margin-bottom:32px}
-.field-label{display:block;font-size:14px;font-weight:600;color:#cbd5e1;margin-bottom:10px}
-.input{width:100%;padding:14px 18px;background:var(--bg-primary);border:2px solid var(--border-subtle);border-radius:12px;color:#f1f5f9;font-size:15px;outline:none;margin-bottom:24px}
-.input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,0.1)}
-.btn{padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none;color:white;transition:all 0.3s;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%}
-.btn:hover{transform:translateY(-3px)}
-.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);box-shadow:0 8px 30px rgba(99,102,241,0.4)}
-.btn-success{background:linear-gradient(135deg,#10b981,#059669)}
-.btn-secondary{background:var(--bg-secondary);border:1px solid var(--border-subtle);color:#cbd5e1}
-.btn-sm{padding:8px 12px;font-size:12px;width:auto}
-.tabs{display:flex;gap:12px;margin-bottom:32px}
-.tab{flex:1;padding:16px 24px;background:var(--bg-card);border:2px solid var(--border-subtle);color:#94a3b8;font-weight:600;font-size:15px;cursor:pointer;border-radius:12px}
-.tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-color:transparent}
+body{font-family:'Inter',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:40px 20px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:32px;margin-bottom:24px}
+.card-title{font-size:24px;font-weight:700;margin-bottom:8px;color:#f1f5f9}
+.card-subtitle{font-size:14px;color:#94a3b8;margin-bottom:24px}
+.field-label{display:block;font-size:13px;font-weight:600;color:#cbd5e1;margin-bottom:8px}
+.input{width:100%;padding:12px 16px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;font-size:14px;outline:none;margin-bottom:16px}
+.input:focus{border-color:#3b82f6}
+.btn{padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;border:none;color:white;transition:all 0.2s;width:100%}
+.btn:hover{opacity:0.9}
+.btn-primary{background:#3b82f6}
+.btn-success{background:#10b981}
+.btn-secondary{background:#475569}
+.btn-sm{padding:8px 16px;font-size:13px;width:auto}
+.tabs{display:flex;gap:8px;margin-bottom:24px}
+.tab{flex:1;padding:12px 20px;background:#1e293b;border:1px solid #334155;color:#94a3b8;font-weight:600;font-size:14px;cursor:pointer;border-radius:8px}
+.tab.active{background:#3b82f6;color:white;border-color:#3b82f6}
 .hidden{display:none!important}
-.text-center{text-align:center}.text-muted{color:#94a3b8}.text-error{color:#ef4444;font-size:13px}
-.mb-6{margin-bottom:24px}.mt-6{margin-top:24px}
-.divider{display:flex;align-items:center;gap:16px;margin:24px 0;color:#64748b;font-size:12px;font-weight:600}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-subtle),transparent)}
-.chat-widget{position:fixed;bottom:28px;left:28px;z-index:1000}
-.chat-toggle{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 30px rgba(99,102,241,0.5)}
-.chat-box{position:absolute;bottom:80px;left:0;width:380px;height:500px;background:var(--bg-card);border:1px solid rgba(99,102,241,0.3);border-radius:20px;display:none;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-.chat-box.active{display:flex}
-.chat-header{padding:20px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px 20px 0 0;color:white;font-weight:700;font-size:16px}
-.chat-messages{flex:1;padding:20px;overflow-y:auto}
-.chat-message{margin-bottom:16px}
-.chat-message.user{text-align:right}
-.chat-bubble{display:inline-block;padding:12px 16px;border-radius:16px;max-width:80%;font-size:14px;line-height:1.5}
-.chat-message.bot .chat-bubble{background:var(--bg-secondary);color:#f1f5f9;border-bottom-left-radius:4px}
-.chat-message.user .chat-bubble{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-bottom-right-radius:4px}
-.chat-input-area{padding:16px;border-top:1px solid var(--border-subtle);display:flex;gap:10px}
-.chat-input{flex:1;padding:12px 16px;background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:10px;color:#f1f5f9;font-size:14px;outline:none}
-.chat-send{padding:12px 20px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:10px;color:white;cursor:pointer;font-weight:600}
-.wa-float{position:fixed;bottom:28px;right:28px;width:60px;height:60px;border-radius:50%;background:var(--whatsapp);display:flex;align-items:center;justify-content:center;color:white;font-size:28px;box-shadow:0 8px 30px rgba(37,211,102,0.5);z-index:999;text-decoration:none}
-.wa-float:hover{transform:scale(1.1)}
-.login-icon{width:64px;height:64px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px}
-.login-icon i{color:white;font-size:28px}
-.user-card{background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.user-info{flex:1}
-.user-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.text-center{text-align:center}
+.text-muted{color:#94a3b8}
+.text-error{color:#ef4444;font-size:13px}
+.mb-4{margin-bottom:16px}
+.mt-4{margin-top:16px}
+.header{background:#1e293b;border-bottom:1px solid #334155;padding:16px 0;margin-bottom:32px}
+.header-content{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:#3b82f6;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon i{color:white;font-size:20px}
+.logo-text{font-size:20px;font-weight:700;color:#f1f5f9}
+.user-info{display:flex;align-items:center;gap:12px}
+.user-badge{background:#334155;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600}
+.btn-logout{background:transparent;border:1px solid #475569;color:#94a3b8;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer}
+.btn-logout:hover{background:#334155;color:#f1f5f9}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px}
+.stat-box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;text-align:center}
+.stat-icon{font-size:24px;color:#3b82f6;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:700;color:#f1f5f9;margin-bottom:4px}
+.stat-label{font-size:12px;color:#94a3b8;font-weight:500}
+.login-container{max-width:400px;margin:60px auto}
+.login-icon{width:56px;height:56px;background:#3b82f6;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.login-icon i{color:white;font-size:24px}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#64748b;font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#334155}
+.link{color:#3b82f6;text-decoration:none;font-weight:600;font-size:13px}
+.link:hover{text-decoration:underline}
+.user-card{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.user-name{font-size:15px;font-weight:600;color:#f1f5f9}
 .user-date{font-size:12px;color:#94a3b8}
-.user-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .role-badge{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
 .role-admin{background:rgba(139,92,246,0.2);color:#a78bfa}
 .role-user{background:rgba(59,130,246,0.2);color:#60a5fa}
+.chat-widget{position:fixed;bottom:24px;right:24px;z-index:1000}
+.chat-toggle{width:56px;height:56px;border-radius:50%;background:#3b82f6;border:none;color:white;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.4)}
+.chat-toggle:hover{background:#2563eb}
+.chat-box{position:absolute;bottom:70px;right:0;width:360px;height:480px;background:#1e293b;border:1px solid #334155;border-radius:12px;display:none;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+.chat-box.active{display:flex}
+.chat-header{padding:16px;background:#3b82f6;border-radius:12px 12px 0 0;color:white;font-weight:600;font-size:15px}
+.chat-messages{flex:1;padding:16px;overflow-y:auto}
+.chat-message{margin-bottom:12px}
+.chat-message.user{text-align:right}
+.chat-bubble{display:inline-block;padding:10px 14px;border-radius:12px;max-width:80%;font-size:13px;line-height:1.5}
+.chat-message.bot .chat-bubble{background:#0f172a;color:#e2e8f0}
+.chat-message.user .chat-bubble{background:#3b82f6;color:white}
+.chat-input-area{padding:12px;border-top:1px solid #334155;display:flex;gap:8px}
+.chat-input{flex:1;padding:10px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:13px;outline:none}
+.chat-send{padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:white;cursor:pointer;font-size:13px;font-weight:600}
+.wa-float{position:fixed;bottom:24px;left:24px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;box-shadow:0 4px 12px rgba(37,211,102,0.4);z-index:999;text-decoration:none}
+.wa-float:hover{background:#128C7E}
 </style>
 </head>
 <body>
 <header class="header">
-<div class="container flex justify-between">
-<div class="flex gap-3">
-<div class="logo"><i class="fas fa-brain"></i></div>
-<div><div class="brand-title">Nexus Inclusivo</div><div class="brand-subtitle">Reclutamiento del Futuro</div></div>
+<div class="header-content">
+<div class="logo">
+<div class="logo-icon"><i class="fas fa-brain"></i></div>
+<div class="logo-text">Nexus Inclusivo</div>
 </div>
-<div id="authStatus" class="hidden flex gap-3">
-<div class="user-badge"><i class="fas fa-shield-alt"></i><span id="userRole">Admin</span></div>
-<button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+<div id="authStatus" class="hidden user-info">
+<div class="user-badge"><i class="fas fa-shield-alt"></i> <span id="userRole">Admin</span></div>
+<button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
 </div>
 </div>
 </header>
 
-<main class="container">
+<div class="container">
 <section id="loginSection">
-<div class="hero">
-<h1 class="hero-title">Reclutamiento del Futuro</h1>
-<p class="hero-subtitle">Potenciado por Inteligencia Artificial</p>
-</div>
-<div class="stats">
-<div class="stat-card"><div class="stat-number" id="statTotalCVs">0</div><div class="stat-label">CVs en el Sistema</div></div>
-<div class="stat-card"><div class="stat-number" id="statProcesados">0</div><div class="stat-label">Procesados con IA</div></div>
-<div class="stat-card"><div class="stat-number" id="statSkills">0</div><div class="stat-label">Habilidades Extraídas</div></div>
-</div>
-
-<div class="card" style="max-width:450px;margin:0 auto;">
-<div id="loginForm">
-<div class="text-center mb-6">
+<div class="login-container">
+<div class="card">
+<div class="text-center mb-4">
 <div class="login-icon"><i class="fas fa-lock"></i></div>
 <h2 class="card-title text-center">Iniciar sesión</h2>
 <p class="card-subtitle text-center">Accede a tu cuenta</p>
@@ -146,15 +137,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:#f1f5f9;m
 <input id="loginUser" class="input" placeholder="tu.usuario">
 <label class="field-label">Contraseña</label>
 <input id="loginPass" class="input" type="password" placeholder="••••••••">
-<button id="loginBtn" class="btn btn-primary" onclick="login()" style="margin-top:12px;">Ingresar al sistema</button>
-<p id="loginError" class="hidden text-error mt-6 text-center"></p>
+<button id="loginBtn" class="btn btn-primary" onclick="login()">Ingresar</button>
+<p id="loginError" class="hidden text-error mt-4 text-center"></p>
 <div class="divider">o</div>
-<p class="text-center text-muted" style="font-size:14px;">¿Eres candidato? <a href="#" onclick="showRegisterForm();return false;" style="color:var(--accent-light);text-decoration:none;font-weight:600;">Regístrate aquí</a></p>
+<p class="text-center text-muted" style="font-size:13px;">¿Eres candidato? <a href="#" class="link" onclick="showRegisterForm();return false;">Regístrate aquí</a></p>
 </div>
 
-<div id="registerForm" class="hidden">
-<div class="text-center mb-6">
-<div class="login-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-user-plus"></i></div>
+<div id="registerForm" class="card hidden">
+<div class="text-center mb-4">
+<div class="login-icon" style="background:#10b981;"><i class="fas fa-user-plus"></i></div>
 <h2 class="card-title text-center">Crear cuenta</h2>
 <p class="card-subtitle text-center">Regístrate como candidato</p>
 </div>
@@ -162,72 +153,93 @@ body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:#f1f5f9;m
 <input id="regUser" class="input" placeholder="ej. juan.perez">
 <label class="field-label">Contraseña</label>
 <input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
-<button id="regBtn" class="btn btn-success" onclick="register()" style="margin-top:12px;"><i class="fas fa-user-plus"></i> Registrarme</button>
-<p id="regError" class="hidden text-error mt-6 text-center"></p>
-<p id="regSuccess" class="hidden mt-6 text-center" style="color:var(--success);font-weight:600;"></p>
+<button id="regBtn" class="btn btn-success" onclick="register()">Registrarme</button>
+<p id="regError" class="hidden text-error mt-4 text-center"></p>
+<p id="regSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:600;"></p>
 <div class="divider">o</div>
-<p class="text-center text-muted" style="font-size:14px;">¿Ya tienes cuenta? <a href="#" onclick="showLoginForm();return false;" style="color:var(--accent-light);text-decoration:none;font-weight:600;">Inicia sesión</a></p>
+<p class="text-center text-muted" style="font-size:13px;">¿Ya tienes cuenta? <a href="#" class="link" onclick="showLoginForm();return false;">Inicia sesión</a></p>
 </div>
 </div>
 </section>
 
 <section id="dashboard" class="hidden">
+<div class="stats-grid">
+<div class="stat-box">
+<div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+<div class="stat-value" id="statTotalCVs">0</div>
+<div class="stat-label">CVs en el Sistema</div>
+</div>
+<div class="stat-box">
+<div class="stat-icon"><i class="fas fa-magic"></i></div>
+<div class="stat-value" id="statProcesados">0</div>
+<div class="stat-label">Procesados con IA</div>
+</div>
+<div class="stat-box">
+<div class="stat-icon"><i class="fas fa-tags"></i></div>
+<div class="stat-value" id="statSkills">0</div>
+<div class="stat-label">Habilidades Extraídas</div>
+</div>
+</div>
+
 <div id="adminView" class="hidden">
 <div class="tabs">
 <button id="tab-analyze" class="tab active" onclick="showTab('analyze')"><i class="fas fa-file-alt"></i> Analizar CV</button>
-<button id="tab-search" class="tab" onclick="showTab('search')"><i class="fas fa-search"></i> Buscar candidatos</button>
+<button id="tab-search" class="tab" onclick="showTab('search')"><i class="fas fa-search"></i> Buscar</button>
 <button id="tab-users" class="tab" onclick="showTab('users')"><i class="fas fa-users"></i> Usuarios</button>
 </div>
+
 <div id="analyzeSection" class="card">
-<h2 class="card-title">Procesamiento de currículum</h2>
+<h2 class="card-title">Procesar Currículum</h2>
 <p class="card-subtitle">Analiza un CV con inteligencia artificial</p>
 <label class="field-label"><i class="fas fa-file-upload"></i> Archivo (PDF, DOCX, TXT)</label>
 <input id="cvFile" type="file" accept=".pdf,.docx,.txt" class="input">
-<label class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp del candidato (opcional)</label>
-<input id="cvWhatsapp" class="input" placeholder="">
-<label class="field-label"><i class="fas fa-paste"></i> Texto del currículum</label>
-<textarea id="cvText" rows="6" class="input" style="resize:vertical;" placeholder="Pega aquí el contenido del CV..."></textarea>
+<label class="field-label"><i class="fab fa-whatsapp"></i> WhatsApp (opcional)</label>
+<input id="cvWhatsapp" class="input" placeholder="+54 9 ...">
+<label class="field-label"><i class="fas fa-paste"></i> O pega el texto</label>
+<textarea id="cvText" rows="5" class="input" placeholder="Pega aquí el contenido del CV..."></textarea>
 <button id="analyzeBtn" class="btn btn-success" onclick="procesarCV()"><i class="fas fa-magic"></i> Procesar con IA</button>
-<p id="analyzeError" class="hidden text-error mt-6 text-center"></p>
-<div id="analyzeResult" class="hidden mt-6 text-center"></div>
+<p id="analyzeError" class="hidden text-error mt-4 text-center"></p>
+<div id="analyzeResult" class="hidden mt-4 text-center"></div>
 </div>
+
 <div id="searchSection" class="card hidden">
-<h2 class="card-title">Búsqueda de candidatos</h2>
+<h2 class="card-title">Buscar Candidatos</h2>
 <p class="card-subtitle">Encuentra profesionales con Blind Hiring</p>
-<label class="field-label"><i class="fas fa-tags"></i> Habilidades requeridas</label>
+<label class="field-label"><i class="fas fa-tags"></i> Habilidades (separadas por coma)</label>
 <input id="searchSkills" class="input" placeholder="Python, FastAPI, AWS">
 <label class="field-label"><i class="fas fa-percent"></i> Coincidencia mínima (%)</label>
 <input id="searchMinMatch" type="number" value="50" class="input">
-<button class="btn btn-primary" onclick="buscarCandidatos()"><i class="fas fa-search"></i> Buscar candidatos</button>
-<p id="searchError" class="hidden text-error mt-6 text-center"></p>
-<div id="searchResults" class="mt-6"></div>
+<button class="btn btn-primary" onclick="buscarCandidatos()"><i class="fas fa-search"></i> Buscar</button>
+<p id="searchError" class="hidden text-error mt-4 text-center"></p>
+<div id="searchResults" class="mt-4"></div>
 </div>
+
 <div id="usersSection" class="card hidden">
 <h2 class="card-title">Gestión de Usuarios</h2>
-<p class="card-subtitle">Administra los usuarios registrados en la plataforma</p>
-<button class="btn btn-primary" onclick="cargarUsuarios()" style="margin-bottom:24px;width:auto;padding:12px 24px;"><i class="fas fa-sync-alt"></i> Actualizar lista</button>
+<p class="card-subtitle">Administra los usuarios registrados</p>
+<button class="btn btn-primary" onclick="cargarUsuarios()" style="width:auto;padding:10px 20px;margin-bottom:20px;"><i class="fas fa-sync-alt"></i> Actualizar</button>
 <div id="usersList"></div>
 </div>
 </div>
 
 <div id="candidateView" class="hidden">
 <div class="card" style="max-width:600px;margin:0 auto;">
-<div class="text-center mb-6">
-<div class="logo" style="margin:0 auto 20px;"><i class="fas fa-user-astronaut"></i></div>
-<h2 class="card-title">¡Bienvenido, Candidato!</h2>
-<p class="card-subtitle">Sube tu currículum para que nuestra IA lo procese de forma anónima y segura.</p>
+<div class="text-center mb-4">
+<div class="login-icon"><i class="fas fa-user-astronaut"></i></div>
+<h2 class="card-title">¡Bienvenido!</h2>
+<p class="card-subtitle">Sube tu currículum de forma anónima y segura</p>
 </div>
-<label class="field-label"><i class="fas fa-file-upload"></i> Sube tu CV (PDF, DOCX, TXT)</label>
+<label class="field-label"><i class="fas fa-file-upload"></i> Sube tu CV</label>
 <input id="candCvFile" type="file" accept=".pdf,.docx,.txt" class="input">
 <label class="field-label"><i class="fab fa-whatsapp"></i> Tu WhatsApp (opcional)</label>
 <input id="candWhatsapp" class="input" placeholder="+54 9 ...">
-<button id="candAnalyzeBtn" class="btn btn-primary" onclick="procesarCVCandidato()"><i class="fas fa-paper-plane"></i> Enviar mi CV</button>
-<p id="candError" class="hidden text-error mt-6 text-center"></p>
-<div id="candResult" class="hidden mt-6 text-center" style="color:var(--success);font-weight:600;"></div>
+<button id="candAnalyzeBtn" class="btn btn-primary" onclick="procesarCVCandidato()"><i class="fas fa-paper-plane"></i> Enviar CV</button>
+<p id="candError" class="hidden text-error mt-4 text-center"></p>
+<div id="candResult" class="hidden mt-4 text-center" style="color:#10b981;font-weight:600;"></div>
 </div>
 </div>
 </section>
-</main>
+</div>
 
 <div class="chat-widget">
 <button class="chat-toggle" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
@@ -235,7 +247,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:#f1f5f9;m
 <div class="chat-header"><i class="fas fa-robot"></i> Asistente Virtual</div>
 <div class="chat-messages" id="chatMessages">
 <div class="chat-message bot">
-<div class="chat-bubble">¡Hola! 👋 Soy el asistente de Nexus Inclusivo. ¿En qué puedo ayudarte hoy?</div>
+<div class="chat-bubble">¡Hola! 👋 Soy el asistente de Nexus Inclusivo. ¿En qué puedo ayudarte?</div>
 </div>
 </div>
 <div class="chat-input-area">
@@ -245,7 +257,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:#f1f5f9;m
 </div>
 </div>
 
-<a class="wa-float" href="https://wa.me/5492993293669" target="_blank" title="Contacto por WhatsApp"><i class="fab fa-whatsapp"></i></a>
+<a class="wa-float" href="https://wa.me/5492993293669" target="_blank" title="Contacto"><i class="fab fa-whatsapp"></i></a>
 
 <script>
 var token = "";
@@ -282,7 +294,7 @@ async function register(){
         return;
     }
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
+    btn.textContent = 'Creando cuenta...';
     try{
         var res = await fetch(API_URL + '/usuarios/',{
             method:'POST',
@@ -304,7 +316,7 @@ async function register(){
         err.classList.remove('hidden');
     }finally{
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-user-plus"></i> Registrarme';
+        btn.textContent = 'Registrarme';
     }
 }
 
@@ -320,7 +332,7 @@ async function login(){
         return;
     }
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando...';
+    btn.textContent = 'Conectando...';
     var body = new URLSearchParams();
     body.append('username',user);
     body.append('password',pass);
@@ -350,7 +362,7 @@ async function login(){
         err.classList.remove('hidden');
     }finally{
         btn.disabled = false;
-        btn.innerHTML = 'Ingresar al sistema';
+        btn.textContent = 'Ingresar';
     }
 }
 
@@ -395,7 +407,7 @@ async function procesarCV(){
         return;
     }
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    btn.textContent = 'Procesando...';
     try{
         var res;
         if(file){
@@ -416,7 +428,7 @@ async function procesarCV(){
         }
         var data = await res.json();
         if(!res.ok) throw new Error(data.detail || 'Error al procesar');
-        out.textContent = data.status === 'pendiente' ? 'Archivo recibido. Procesando...' : 'CV procesado correctamente.';
+        out.textContent = data.status === 'pendiente' ? '✅ Archivo recibido. Procesando...' : '✅ CV procesado correctamente.';
         out.classList.remove('hidden');
     }catch(e){
         err.textContent = String(e.message);
@@ -441,7 +453,7 @@ async function procesarCVCandidato(){
         return;
     }
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    btn.textContent = 'Enviando...';
     try{
         var fd = new FormData();
         fd.append('file',file);
@@ -453,7 +465,7 @@ async function procesarCVCandidato(){
         });
         var data = await res.json();
         if(!res.ok) throw new Error(data.detail || 'Error al procesar');
-        out.textContent = '✅ ¡CV enviado con éxito! Será procesado en breve.';
+        out.textContent = '✅ ¡CV enviado con éxito!';
         out.classList.remove('hidden');
         document.getElementById('candCvFile').value = '';
         document.getElementById('candWhatsapp').value = '';
@@ -462,7 +474,7 @@ async function procesarCVCandidato(){
         err.classList.remove('hidden');
     }finally{
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mi CV';
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar CV';
     }
 }
 
@@ -478,7 +490,7 @@ async function buscarCandidatos(){
         return;
     }
     var skills = raw.split(',').map(function(s){return s.trim();}).filter(function(s){return s.length;});
-    box.innerHTML = '<p class="text-muted mt-6 text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
+    box.innerHTML = '<p class="text-muted mt-4 text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
     try{
         var res = await fetch(API_URL + '/cvs/buscar-candidatos',{
             method:'POST',
@@ -489,17 +501,17 @@ async function buscarCandidatos(){
         if(!res.ok) throw new Error(data.detail || 'Error al buscar');
         box.innerHTML = '';
         if(!data.total_encontrados){
-            box.innerHTML = '<p class="text-muted mt-6 text-center">No se encontraron candidatos.</p>';
+            box.innerHTML = '<p class="text-muted mt-4 text-center">No se encontraron candidatos.</p>';
             return;
         }
         var admin = getRole() === 'Admin';
         data.candidatos.forEach(function(c){
             var card = document.createElement('div');
-            card.className = 'candidate';
-            var skillsHtml = (c.skills_coincidentes || []).map(function(s){return '<span class="skill-tag">' + s + '</span>';}).join('');
-            var waBtn = c.whatsapp ? '<a class="btn btn-sm" style="background:var(--whatsapp);" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g,'') + '"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
-            var revealBtn = admin ? '<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar identidad</button>' : '';
-            card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><div style="font-size:18px;font-weight:700;">' + c.perfil_ciego_id + '</div><span class="match-badge">' + c.match_porcentaje + '% match</span></div><div style="margin-bottom:20px;">' + skillsHtml + '</div><div style="background:var(--bg-primary);padding:16px;border-radius:10px;font-style:italic;color:#94a3b8;">' + (c.cv_redactado || 'Sin perfil') + '</div><div style="display:flex;gap:10px;margin-top:20px;">' + waBtn + revealBtn + '</div><div class="hidden identity-box"></div>';
+            card.className = 'user-card';
+            var skillsHtml = (c.skills_coincidentes || []).map(function(s){return '<span style="background:#334155;padding:4px 10px;border-radius:6px;font-size:12px;margin:2px;display:inline-block;">' + s + '</span>';}).join('');
+            var waBtn = c.whatsapp ? '<a class="btn btn-sm" style="background:#25D366;" target="_blank" href="https://wa.me/' + c.whatsapp.replace(/[^0-9]/g,'') + '"><i class="fab fa-whatsapp"></i> WhatsApp</a>' : '';
+            var revealBtn = admin ? '<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar</button>' : '';
+            card.innerHTML = '<div style="flex:1;"><div style="font-size:15px;font-weight:600;margin-bottom:4px;">' + c.perfil_ciego_id + ' <span style="background:rgba(16,185,129,0.2);color:#10b981;padding:4px 10px;border-radius:6px;font-size:12px;margin-left:8px;">' + c.match_porcentaje + '% match</span></div><div style="margin-bottom:8px;">' + skillsHtml + '</div><div style="background:#0f172a;padding:12px;border-radius:6px;font-size:13px;color:#94a3b8;font-style:italic;">' + (c.cv_redactado || 'Sin perfil') + '</div></div><div style="display:flex;gap:8px;margin-top:12px;">' + waBtn + revealBtn + '</div><div class="hidden identity-box"></div>';
             box.appendChild(card);
             var rb = card.querySelector('.reveal-btn');
             if(rb){
@@ -522,14 +534,14 @@ async function revelarIdentidad(id,btn,card){
         });
         var data = await res.json();
         if(!res.ok) throw new Error(data.detail || 'Acceso denegado');
-        var html = '<p style="color:var(--accent-light);font-weight:600;">Revelado por: ' + data.identidad_revelada_por + '</p>';
+        var html = '<p style="color:#3b82f6;font-weight:600;margin-bottom:8px;">Revelado por: ' + data.identidad_revelada_por + '</p>';
         if(data.whatsapp){
-            html += '<p style="color:var(--success);"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</p>';
+            html += '<p style="color:#10b981;margin-bottom:8px;"><i class="fab fa-whatsapp"></i> ' + data.whatsapp + '</p>';
         }
-        html += '<pre style="white-space:pre-wrap;color:#cbd5e1;background:var(--bg-secondary);padding:16px;border-radius:10px;margin-top:12px;">' + data.texto_original_completo + '</pre>';
+        html += '<pre style="white-space:pre-wrap;color:#cbd5e1;background:#0f172a;padding:12px;border-radius:6px;margin-top:8px;font-size:12px;">' + data.texto_original_completo + '</pre>';
         box.innerHTML = html;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-check"></i> Revelado';
+        btn.textContent = 'Revelado';
     }catch(e){
         box.innerHTML = '<p style="color:#ef4444;">Error: ' + String(e.message) + '</p>';
     }
@@ -561,7 +573,7 @@ async function sendChat(){
         });
         if(res.status === 401){
             document.getElementById('typing').remove();
-            messagesContainer.innerHTML += '<div class="chat-message bot"><div class="chat-bubble">🔒 Por seguridad, debes <strong>iniciar sesión</strong> para usar el asistente virtual.</div></div>';
+            messagesContainer.innerHTML += '<div class="chat-message bot"><div class="chat-bubble">🔒 Debes iniciar sesión para usar el chat.</div></div>';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             return;
         }
@@ -571,13 +583,13 @@ async function sendChat(){
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }catch(e){
         document.getElementById('typing').remove();
-        messagesContainer.innerHTML += '<div class="chat-message bot"><div class="chat-bubble">Lo siento, hubo un error de conexión.</div></div>';
+        messagesContainer.innerHTML += '<div class="chat-message bot"><div class="chat-bubble">Error de conexión.</div></div>';
     }
 }
 
 async function cargarUsuarios(){
     var list = document.getElementById('usersList');
-    list.innerHTML = '<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</p>';
+    list.innerHTML = '<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
     try{
         var res = await fetch(API_URL + '/usuarios/',{
             headers:{'Authorization':'Bearer ' + token}
@@ -588,7 +600,7 @@ async function cargarUsuarios(){
             list.innerHTML = '<p class="text-muted text-center">No hay usuarios registrados.</p>';
             return;
         }
-        var html = '<div style="display:grid;gap:16px;">';
+        var html = '';
         data.forEach(function(u){
             var fecha = u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString('es-AR') : 'N/A';
             var rolClass = u.rol === 'Admin' ? 'role-admin' : 'role-user';
@@ -596,18 +608,17 @@ async function cargarUsuarios(){
             var nuevoRol = u.rol === 'Admin' ? 'User' : 'Admin';
             
             html += '<div class="user-card">';
-            html += '<div class="user-info">';
+            html += '<div style="flex:1;">';
             html += '<div class="user-name">' + u.nombre + '</div>';
             html += '<div class="user-date">Registrado: ' + fecha + '</div>';
             html += '</div>';
-            html += '<div class="user-actions">';
+            html += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
             html += '<span class="role-badge ' + rolClass + '">' + rolText + '</span>';
-            html += '<button class="btn btn-sm btn-secondary" onclick="cambiarRol(' + u.id + ',\'' + nuevoRol + '\')"><i class="fas fa-exchange-alt"></i> Cambiar rol</button>';
-            html += '<button class="btn btn-sm" style="background:#ef4444;" onclick="eliminarUsuario(' + u.id + ',\'' + u.nombre + '\')"><i class="fas fa-trash"></i> Eliminar</button>';
+            html += '<button class="btn btn-sm btn-secondary" onclick="cambiarRol(' + u.id + ',\'' + nuevoRol + '\')"><i class="fas fa-exchange-alt"></i> Cambiar</button>';
+            html += '<button class="btn btn-sm" style="background:#ef4444;" onclick="eliminarUsuario(' + u.id + ',\'' + u.nombre + '\')"><i class="fas fa-trash"></i></button>';
             html += '</div>';
             html += '</div>';
         });
-        html += '</div>';
         list.innerHTML = html;
     }catch(e){
         list.innerHTML = '<p class="text-error text-center">Error: ' + String(e.message) + '</p>';
@@ -615,14 +626,14 @@ async function cargarUsuarios(){
 }
 
 async function cambiarRol(userId,nuevoRol){
-    if(!confirm('¿Estás seguro de cambiar el rol a ' + nuevoRol + '?')) return;
+    if(!confirm('¿Cambiar rol a ' + nuevoRol + '?')) return;
     try{
         var res = await fetch(API_URL + '/usuarios/' + userId + '/rol?nuevo_rol=' + nuevoRol,{
             method:'PUT',
             headers:{'Authorization':'Bearer ' + token}
         });
         var data = await res.json();
-        if(!res.ok) throw new Error(data.detail || 'Error al cambiar rol');
+        if(!res.ok) throw new Error(data.detail || 'Error');
         alert('✅ ' + data.mensaje);
         cargarUsuarios();
     }catch(e){
@@ -631,14 +642,14 @@ async function cambiarRol(userId,nuevoRol){
 }
 
 async function eliminarUsuario(userId,nombre){
-    if(!confirm('¿Estás seguro de eliminar al usuario "' + nombre + '"?')) return;
+    if(!confirm('¿Eliminar a "' + nombre + '"?')) return;
     try{
         var res = await fetch(API_URL + '/usuarios/' + userId,{
             method:'DELETE',
             headers:{'Authorization':'Bearer ' + token}
         });
         var data = await res.json();
-        if(!res.ok) throw new Error(data.detail || 'Error al eliminar usuario');
+        if(!res.ok) throw new Error(data.detail || 'Error');
         alert('✅ ' + data.mensaje);
         cargarUsuarios();
     }catch(e){
@@ -654,7 +665,7 @@ async function cargarEstadisticas(){
         document.getElementById('statProcesados').textContent = data.cvs_procesados;
         document.getElementById('statSkills').textContent = data.total_skills;
     }catch(e){
-        console.log('Error cargando estadísticas:',e);
+        console.log('Error:',e);
     }
 }
 cargarEstadisticas();
