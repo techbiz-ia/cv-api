@@ -54,7 +54,6 @@ def crear_usuario(usuario: UsuarioCrear, db: Session = Depends(get_db)):
     db_usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
     if db_usuario:
         raise HTTPException(status_code=400, detail="El usuario ya existe.")
-    
     hashed_password = pwd_context.hash(usuario.password)
     nuevo_usuario = UsuarioModel(nombre=usuario.nombre, password=hashed_password, rol=usuario.rol)
     db.add(nuevo_usuario)
@@ -67,45 +66,27 @@ def login_usuario(form_data: OAuth2PasswordRequestForm = Depends(), db: Session 
     usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == form_data.username).first()
     if not usuario or not pwd_context.verify(form_data.password, usuario.password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
-    
     access_token = crear_token(data={"sub": usuario.nombre, "rol": usuario.rol})
     return {"access_token": access_token, "token_type": "bearer"}
-
-# ==========================================
-# NUEVOS ENDPOINTS DE GESTIÓN DE USUARIOS
-# ==========================================
 
 @router.get("/usuarios/")
 def obtener_todos_los_usuarios(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     payload = validar_token_y_obtener_rol(token)
     if payload.get("rol") != "Admin":
-        raise HTTPException(status_code=403, detail="Acceso denegado. Solo administradores pueden ver la lista de usuarios.")
-    
+        raise HTTPException(status_code=403, detail="Acceso denegado.")
     usuarios = db.query(UsuarioModel).all()
-    resultado = []
-    for usuario in usuarios:
-        fecha = getattr(usuario, 'fecha_creacion', None)
-        resultado.append({
-            "id": usuario.id,
-            "nombre": usuario.nombre,
-            "rol": usuario.rol,
-            "fecha_creacion": fecha.isoformat() if fecha else None
-        })
-    return resultado
+    return [{"id": u.id, "nombre": u.nombre, "rol": u.rol, "fecha_creacion": getattr(u, 'fecha_creacion', None).isoformat() if getattr(u, 'fecha_creacion', None) else None} for u in usuarios]
 
 @router.delete("/usuarios/{usuario_id}")
 def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     payload = validar_token_y_obtener_rol(token)
     if payload.get("rol") != "Admin":
-        raise HTTPException(status_code=403, detail="Acceso denegado. Solo administradores pueden eliminar usuarios.")
-    
+        raise HTTPException(status_code=403, detail="Acceso denegado.")
     usuario = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
     if usuario.nombre == payload.get("sub"):
         raise HTTPException(status_code=400, detail="No puedes eliminar tu propia cuenta.")
-    
     db.delete(usuario)
     db.commit()
     return {"mensaje": f"Usuario {usuario.nombre} eliminado exitosamente"}
@@ -114,15 +95,12 @@ def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), token: str 
 def cambiar_rol_usuario(usuario_id: int, nuevo_rol: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     payload = validar_token_y_obtener_rol(token)
     if payload.get("rol") != "Admin":
-        raise HTTPException(status_code=403, detail="Acceso denegado. Solo administradores pueden cambiar roles.")
-    
+        raise HTTPException(status_code=403, detail="Acceso denegado.")
     if nuevo_rol not in ["Admin", "User"]:
-        raise HTTPException(status_code=400, detail="Rol inválido. Debe ser 'Admin' o 'User'.")
-    
+        raise HTTPException(status_code=400, detail="Rol inválido.")
     usuario = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
     usuario.rol = nuevo_rol
     db.commit()
     return {"mensaje": f"Rol de {usuario.nombre} cambiado a {nuevo_rol}"}
