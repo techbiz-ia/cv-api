@@ -1,5 +1,6 @@
 ﻿import bcrypt
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime
 from app.database import Base
 
 class UsuarioModel(Base):
@@ -8,6 +9,7 @@ class UsuarioModel(Base):
     nombre = Column(String, unique=True, index=True)
     rol = Column(String, default="User")
     password = Column(String)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow)
 
 def obtener_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()

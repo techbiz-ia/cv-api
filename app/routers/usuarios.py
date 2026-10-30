@@ -5,14 +5,12 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import jwt
 import os
-from passlib.context import CryptContext
 
 from app.database import SessionLocal
-from app.models.usuarios import UsuarioModel
+from app.models.usuarios import UsuarioModel, obtener_password_hash, verificar_password
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="usuarios/login")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_key_cambiar_en_produccion")
 ALGORITHM = "HS256"
@@ -51,20 +49,36 @@ class Token(BaseModel):
 
 @router.post("/usuarios/", status_code=201)
 def crear_usuario(usuario: UsuarioCrear, db: Session = Depends(get_db)):
-    db_usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
-    if db_usuario:
-        raise HTTPException(status_code=400, detail="El usuario ya existe.")
-    hashed_password = pwd_context.hash(usuario.password)
-    nuevo_usuario = UsuarioModel(nombre=usuario.nombre, password=hashed_password, rol=usuario.rol)
-    db.add(nuevo_usuario)
-    db.commit()
-    db.refresh(nuevo_usuario)
-    return {"id": nuevo_usuario.id, "nombre": nuevo_usuario.nombre, "rol": nuevo_usuario.rol}
+    try:
+        db_usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == usuario.nombre).first()
+        if db_usuario:
+            raise HTTPException(status_code=400, detail="El usuario ya existe.")
+        
+        hashed_password = obtener_password_hash(usuario.password)
+        nuevo_usuario = UsuarioModel(
+            nombre=usuario.nombre, 
+            password=hashed_password, 
+            rol=usuario.rol
+        )
+        db.add(nuevo_usuario)
+        db.commit()
+        db.refresh(nuevo_usuario)
+        
+        return {
+            "id": nuevo_usuario.id, 
+            "nombre": nuevo_usuario.nombre, 
+            "rol": nuevo_usuario.rol
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error al crear usuario: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 @router.post("/usuarios/login", response_model=Token)
 def login_usuario(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     usuario = db.query(UsuarioModel).filter(UsuarioModel.nombre == form_data.username).first()
-    if not usuario or not pwd_context.verify(form_data.password, usuario.password):
+    if not usuario or not verificar_password(form_data.password, usuario.password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
     access_token = crear_token(data={"sub": usuario.nombre, "rol": usuario.rol})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -75,7 +89,16 @@ def obtener_todos_los_usuarios(db: Session = Depends(get_db), token: str = Depen
     if payload.get("rol") != "Admin":
         raise HTTPException(status_code=403, detail="Acceso denegado.")
     usuarios = db.query(UsuarioModel).all()
-    return [{"id": u.id, "nombre": u.nombre, "rol": u.rol, "fecha_creacion": getattr(u, 'fecha_creacion', None).isoformat() if getattr(u, 'fecha_creacion', None) else None} for u in usuarios]
+    resultado = []
+    for u in usuarios:
+        fecha = getattr(u, 'fecha_creacion', None)
+        resultado.append({
+            "id": u.id,
+            "nombre": u.nombre,
+            "rol": u.rol,
+            "fecha_creacion": fecha.isoformat() if fecha else None
+        })
+    return resultado
 
 @router.delete("/usuarios/{usuario_id}")
 def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):

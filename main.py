@@ -15,11 +15,12 @@ async def lifespan(app: FastAPI):
         from sqlalchemy import text
         with engine.connect() as conn:
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS whatsapp VARCHAR;"))
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS fecha_creacion TIMESTAMP;"))
             conn.commit()
+        print("✅ Columnas verificadas.")
     except Exception as e:
-        print(f"⚠️ Info whatsapp: {e}")
+        print(f"⚠️ Info migración: {e}")
     yield
-
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["https://cv-api-1-ps8r.onrender.com"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
