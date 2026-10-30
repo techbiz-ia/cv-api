@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
         print(f"⚠️ Info whatsapp: {e}")
     yield
 
-app = FastAPI(title="Nexus Inclusivo API", version="11.0.0", lifespan=lifespan)
+app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["https://cv-api-1-ps8r.onrender.com"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
@@ -56,6 +56,12 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .user-badge i{color:#10b981;font-size:18px}
 .btn-logout{background:transparent;border:2px solid rgba(148,163,184,0.3);color:#94a3b8;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s}
 .btn-logout:hover{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.5)}
+.hero{text-align:center;padding:40px 0 20px}
+.hero-title{font-size:42px;font-weight:900;background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;letter-spacing:-1px}
+.hero-subtitle{font-size:17px;color:#94a3b8;margin-bottom:20px}
+.typing-text{font-size:18px;color:#818cf8;font-weight:600;min-height:28px;margin-top:12px}
+.typing-text::after{content:'|';animation:blink 1s infinite}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
 .card{background:rgba(30,41,59,0.7);backdrop-filter:blur(20px);border:2px solid rgba(99,102,241,0.2);border-radius:20px;padding:40px;margin-bottom:32px;transition:all 0.3s}
 .card:hover{border-color:rgba(99,102,241,0.5);box-shadow:0 8px 40px rgba(99,102,241,0.2)}
 .card-title{font-size:28px;font-weight:800;margin-bottom:12px;color:#f1f5f9}
@@ -64,16 +70,15 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .field-label i{color:#818cf8;margin-right:8px}
 .input{width:100%;padding:14px 18px;background:rgba(15,23,42,0.8);border:2px solid rgba(99,102,241,0.2);border-radius:12px;color:#f1f5f9;font-size:15px;outline:none;transition:all 0.3s;margin-bottom:20px}
 .input:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.15)}
-.btn{padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none;color:white;transition:all 0.3s;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden}
-.btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.3);transform:translate(-50%,-50%);transition:width 0.6s,height 0.6s}
-.btn:hover::before{width:400px;height:400px}
-.btn:hover{transform:translateY(-3px)}
-.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);box-shadow:0 8px 30px rgba(99,102,241,0.4)}
-.btn-success{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 30px rgba(16,185,129,0.4)}
+.btn{padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none;color:white;transition:all 0.3s;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(99,102,241,0.4)}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2)}
+.btn-success{background:linear-gradient(135deg,#10b981,#059669)}
 .btn-secondary{background:rgba(71,85,105,0.8);border:2px solid rgba(148,163,184,0.3)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
 .btn-sm{padding:10px 18px;font-size:13px;width:auto}
-.tabs{display:flex;gap:12px;margin-bottom:32px}
-.tab{flex:1;padding:16px 24px;background:rgba(30,41,59,0.7);border:2px solid rgba(99,102,241,0.2);color:#94a3b8;font-weight:700;font-size:15px;cursor:pointer;border-radius:12px;transition:all 0.3s}
+.tabs{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.tab{flex:1;min-width:140px;padding:16px 20px;background:rgba(30,41,59,0.7);border:2px solid rgba(99,102,241,0.2);color:#94a3b8;font-weight:700;font-size:14px;cursor:pointer;border-radius:12px;transition:all 0.3s}
 .tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-color:transparent;box-shadow:0 8px 30px rgba(99,102,241,0.4)}
 .hidden{display:none!important}
 .text-center{text-align:center}
@@ -81,18 +86,18 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .text-error{color:#ef4444;font-size:13px}
 .mb-4{margin-bottom:16px}
 .mt-4{margin-top:16px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-bottom:40px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin:40px 0}
 .stat-box{background:rgba(30,41,59,0.7);backdrop-filter:blur(20px);border:2px solid rgba(99,102,241,0.2);border-radius:16px;padding:32px;text-align:center;transition:all 0.3s}
 .stat-box:hover{transform:translateY(-8px);border-color:#6366f1;box-shadow:0 12px 40px rgba(99,102,241,0.3)}
 .stat-icon{font-size:36px;color:#818cf8;margin-bottom:12px}
 .stat-value{font-size:42px;font-weight:900;background:linear-gradient(135deg,#667eea,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
 .stat-label{font-size:14px;color:#94a3b8;font-weight:600}
-.login-container{max-width:450px;margin:80px auto}
+.login-container{max-width:450px;margin:40px auto}
 .login-icon{width:72px;height:72px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 30px rgba(99,102,241,0.5)}
 .login-icon i{color:white;font-size:32px}
 .divider{display:flex;align-items:center;gap:16px;margin:24px 0;color:#64748b;font-size:12px;font-weight:600}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)}
-.link{color:#818cf8;text-decoration:none;font-weight:700;font-size:14px}
+.link{color:#818cf8;text-decoration:none;font-weight:700;font-size:14px;cursor:pointer}
 .link:hover{text-decoration:underline}
 .user-card{background:rgba(15,23,42,0.8);border:2px solid rgba(99,102,241,0.2);border-radius:16px;padding:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:16px;transition:all 0.3s}
 .user-card:hover{border-color:rgba(99,102,241,0.5);transform:translateY(-4px);box-shadow:0 8px 30px rgba(99,102,241,0.2)}
@@ -101,11 +106,22 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .role-badge{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700}
 .role-admin{background:rgba(139,92,246,0.25);color:#a78bfa;border:2px solid rgba(139,92,246,0.4)}
 .role-user{background:rgba(59,130,246,0.25);color:#60a5fa;border:2px solid rgba(59,130,246,0.4)}
-.chat-widget{position:fixed;bottom:32px;right:32px;z-index:1000}
+.cv-card{background:rgba(15,23,42,0.8);border:2px solid rgba(99,102,241,0.2);border-radius:16px;padding:24px;margin-bottom:16px;transition:all 0.3s}
+.cv-card:hover{border-color:rgba(99,102,241,0.5);transform:translateY(-4px)}
+.cv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:12px}
+.cv-id{font-size:16px;font-weight:700;color:#f1f5f9}
+.cv-status{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700}
+.status-procesado{background:rgba(16,185,129,0.2);color:#10b981;border:2px solid rgba(16,185,129,0.4)}
+.status-pendiente{background:rgba(245,158,11,0.2);color:#f59e0b;border:2px solid rgba(245,158,11,0.4)}
+.status-error{background:rgba(239,68,68,0.2);color:#ef4444;border:2px solid rgba(239,68,68,0.4)}
+.cv-skills{margin-top:12px}
+.skill-tag{display:inline-block;background:rgba(99,102,241,0.2);padding:6px 12px;border-radius:8px;font-size:12px;margin:3px;color:#a5b4fc;font-weight:600}
+.cv-text{background:rgba(15,23,42,0.6);padding:14px;border-radius:10px;font-size:13px;color:#94a3b8;font-style:italic;margin-top:12px;line-height:1.6}
+.chat-widget{position:fixed;bottom:32px;left:32px;z-index:1000}
 .chat-toggle{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:white;font-size:32px;cursor:pointer;box-shadow:0 8px 40px rgba(99,102,241,0.6);transition:all 0.3s;animation:chat-pulse 2s ease-in-out infinite}
 @keyframes chat-pulse{0%,100%{box-shadow:0 8px 40px rgba(99,102,241,0.6)}50%{box-shadow:0 8px 60px rgba(99,102,241,0.9)}}
-.chat-toggle:hover{transform:scale(1.1);box-shadow:0 12px 50px rgba(99,102,241,0.8)}
-.chat-box{position:absolute;bottom:85px;right:0;width:400px;height:520px;background:rgba(30,41,59,0.95);backdrop-filter:blur(20px);border:2px solid rgba(99,102,241,0.3);border-radius:20px;display:none;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+.chat-toggle:hover{transform:scale(1.1)}
+.chat-box{position:absolute;bottom:85px;left:0;width:400px;height:520px;background:rgba(30,41,59,0.95);backdrop-filter:blur(20px);border:2px solid rgba(99,102,241,0.3);border-radius:20px;display:none;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
 .chat-box.active{display:flex}
 .chat-header{padding:20px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px 20px 0 0;color:white;font-weight:700;font-size:17px}
 .chat-messages{flex:1;padding:20px;overflow-y:auto}
@@ -117,7 +133,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .chat-input-area{padding:16px;border-top:2px solid rgba(99,102,241,0.2);display:flex;gap:12px}
 .chat-input{flex:1;padding:12px 16px;background:rgba(15,23,42,0.8);border:2px solid rgba(99,102,241,0.3);border-radius:12px;color:#e2e8f0;font-size:14px;outline:none}
 .chat-send{padding:12px 20px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:12px;color:white;cursor:pointer;font-size:15px;font-weight:700}
-.wa-float{position:fixed;bottom:32px;left:32px;width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;color:white;font-size:32px;box-shadow:0 8px 40px rgba(37,211,102,0.6);z-index:999;text-decoration:none;transition:all 0.3s}
+.wa-float{position:fixed;bottom:32px;right:32px;width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;color:white;font-size:32px;box-shadow:0 8px 40px rgba(37,211,102,0.6);z-index:999;text-decoration:none;transition:all 0.3s}
 .wa-float:hover{transform:scale(1.1);box-shadow:0 12px 50px rgba(37,211,102,0.8)}
 </style>
 </head>
@@ -137,43 +153,12 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 
 <div class="container">
 <section id="loginSection">
-<div class="login-container">
-<div class="card">
-<div class="text-center mb-4">
-<div class="login-icon"><i class="fas fa-lock"></i></div>
-<h2 class="card-title text-center">Iniciar sesión</h2>
-<p class="card-subtitle text-center">Accede a tu cuenta</p>
-</div>
-<label class="field-label">Usuario</label>
-<input id="loginUser" class="input" placeholder="tu.usuario">
-<label class="field-label">Contraseña</label>
-<input id="loginPass" class="input" type="password" placeholder="••••••••">
-<button id="loginBtn" class="btn btn-primary" onclick="login()">Ingresar al sistema</button>
-<p id="loginError" class="hidden text-error mt-4 text-center"></p>
-<div class="divider">o</div>
-<p class="text-center text-muted" style="font-size:14px;">¿Eres candidato? <a href="#" class="link" onclick="showRegisterForm();return false;">Regístrate aquí</a></p>
+<div class="hero">
+<h1 class="hero-title">Reclutamiento del Futuro</h1>
+<p class="hero-subtitle">Potenciado por Inteligencia Artificial</p>
+<div class="typing-text" id="typingText"></div>
 </div>
 
-<div id="registerForm" class="card hidden">
-<div class="text-center mb-4">
-<div class="login-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-user-plus"></i></div>
-<h2 class="card-title text-center">Crear cuenta</h2>
-<p class="card-subtitle text-center">Regístrate como candidato</p>
-</div>
-<label class="field-label">Nombre de usuario</label>
-<input id="regUser" class="input" placeholder="ej. juan.perez">
-<label class="field-label">Contraseña</label>
-<input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
-<button id="regBtn" class="btn btn-success" onclick="register()">Registrarme</button>
-<p id="regError" class="hidden text-error mt-4 text-center"></p>
-<p id="regSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:700;"></p>
-<div class="divider">o</div>
-<p class="text-center text-muted" style="font-size:14px;">¿Ya tienes cuenta? <a href="#" class="link" onclick="showLoginForm();return false;">Inicia sesión</a></p>
-</div>
-</div>
-</section>
-
-<section id="dashboard" class="hidden">
 <div class="stats-grid">
 <div class="stat-box">
 <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
@@ -192,10 +177,50 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 </div>
 </div>
 
+<div class="login-container">
+<div class="card">
+<div id="loginForm">
+<div class="text-center mb-4">
+<div class="login-icon"><i class="fas fa-lock"></i></div>
+<h2 class="card-title text-center">Iniciar sesión</h2>
+<p class="card-subtitle text-center">Accede a tu cuenta</p>
+</div>
+<label class="field-label">Usuario</label>
+<input id="loginUser" class="input" placeholder="tu.usuario">
+<label class="field-label">Contraseña</label>
+<input id="loginPass" class="input" type="password" placeholder="••••••••">
+<button id="loginBtn" class="btn btn-primary" onclick="login()">Ingresar al sistema</button>
+<p id="loginError" class="hidden text-error mt-4 text-center"></p>
+<div class="divider">o</div>
+<p class="text-center text-muted" style="font-size:14px;">¿Eres candidato? <a class="link" onclick="showRegisterForm();return false;">Regístrate aquí</a></p>
+</div>
+
+<div id="registerForm" class="hidden">
+<div class="text-center mb-4">
+<div class="login-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-user-plus"></i></div>
+<h2 class="card-title text-center">Crear cuenta</h2>
+<p class="card-subtitle text-center">Regístrate como candidato</p>
+</div>
+<label class="field-label">Nombre de usuario</label>
+<input id="regUser" class="input" placeholder="ej. juan.perez">
+<label class="field-label">Contraseña</label>
+<input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
+<button id="regBtn" class="btn btn-success" onclick="register()">Registrarme</button>
+<p id="regError" class="hidden text-error mt-4 text-center"></p>
+<p id="regSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:700;"></p>
+<div class="divider">o</div>
+<p class="text-center text-muted" style="font-size:14px;">¿Ya tienes cuenta? <a class="link" onclick="showLoginForm();return false;">Inicia sesión</a></p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="dashboard" class="hidden">
 <div id="adminView" class="hidden">
 <div class="tabs">
 <button id="tab-analyze" class="tab active" onclick="showTab('analyze')"><i class="fas fa-file-alt"></i> Analizar CV</button>
 <button id="tab-search" class="tab" onclick="showTab('search')"><i class="fas fa-search"></i> Buscar</button>
+<button id="tab-cvs" class="tab" onclick="showTab('cvs')"><i class="fas fa-folder-open"></i> Ver CVs</button>
 <button id="tab-users" class="tab" onclick="showTab('users')"><i class="fas fa-users"></i> Usuarios</button>
 </div>
 
@@ -223,6 +248,13 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <button class="btn btn-primary" onclick="buscarCandidatos()"><i class="fas fa-search"></i> Buscar</button>
 <p id="searchError" class="hidden text-error mt-4 text-center"></p>
 <div id="searchResults" class="mt-4"></div>
+</div>
+
+<div id="cvsSection" class="card hidden">
+<h2 class="card-title">Todos los CVs Procesados</h2>
+<p class="card-subtitle">Visualiza todos los currículums en el sistema</p>
+<button class="btn btn-primary" onclick="cargarCVs()" style="width:auto;padding:12px 24px;margin-bottom:24px;"><i class="fas fa-sync-alt"></i> Actualizar lista</button>
+<div id="cvsList"></div>
 </div>
 
 <div id="usersSection" class="card hidden">
@@ -274,6 +306,26 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 var token="";
 var API_URL="https://cv-api-1-ps8r.onrender.com";
 
+// Typing animation
+var typingTexts=['Procesamiento ético con IA','Blind Hiring garantizado','Búsqueda inteligente de talento','Privacidad por diseño'];
+var typingIndex=0,typingCharIndex=0;
+var typingElement=document.getElementById('typingText');
+function typeText(){
+    if(typingCharIndex<typingTexts[typingIndex].length){
+        typingElement.textContent+=typingTexts[typingIndex].charAt(typingCharIndex);
+        typingCharIndex++;
+        setTimeout(typeText,50);
+    }else{setTimeout(eraseText,2000);}
+}
+function eraseText(){
+    if(typingCharIndex>0){
+        typingElement.textContent=typingTexts[typingIndex].substring(0,typingCharIndex-1);
+        typingCharIndex--;
+        setTimeout(eraseText,30);
+    }else{typingIndex=(typingIndex+1)%typingTexts.length;setTimeout(typeText,500);}
+}
+typeText();
+
 function showRegisterForm(){
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('registerForm').classList.remove('hidden');
@@ -294,41 +346,21 @@ async function register(){
     var btn=document.getElementById('regBtn');
     err.classList.add('hidden');
     success.classList.add('hidden');
-    if(!user||!pass){
-        err.textContent='Completa todos los campos.';
-        err.classList.remove('hidden');
-        return;
-    }
-    if(pass.length<6){
-        err.textContent='La contraseña debe tener al menos 6 caracteres.';
-        err.classList.remove('hidden');
-        return;
-    }
+    if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+    if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.classList.remove('hidden');return;}
     btn.disabled=true;
     btn.textContent='Creando cuenta...';
     try{
-        var res=await fetch(API_URL+'/usuarios/',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({nombre:user,password:pass,rol:"User"})
-        });
+        var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,password:pass,rol:"User"})});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al crear la cuenta.');
         success.textContent='✅ ¡Cuenta creada con éxito!';
         success.classList.remove('hidden');
         document.getElementById('regUser').value='';
         document.getElementById('regPass').value='';
-        setTimeout(function(){
-            showLoginForm();
-            document.getElementById('loginUser').value=user;
-        },2000);
-    }catch(e){
-        err.textContent=String(e.message);
-        err.classList.remove('hidden');
-    }finally{
-        btn.disabled=false;
-        btn.textContent='Registrarme';
-    }
+        setTimeout(function(){showLoginForm();document.getElementById('loginUser').value=user;},2000);
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+    finally{btn.disabled=false;btn.textContent='Registrarme';}
 }
 
 async function login(){
@@ -337,22 +369,14 @@ async function login(){
     var err=document.getElementById('loginError');
     var btn=document.getElementById('loginBtn');
     err.classList.add('hidden');
-    if(!user||!pass){
-        err.textContent='Completa todos los campos.';
-        err.classList.remove('hidden');
-        return;
-    }
+    if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
     btn.disabled=true;
     btn.textContent='Conectando...';
     var body=new URLSearchParams();
     body.append('username',user);
     body.append('password',pass);
     try{
-        var res=await fetch(API_URL+'/usuarios/login',{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
-            body:body
-        });
+        var res=await fetch(API_URL+'/usuarios/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Credenciales incorrectas');
         token=data.access_token;
@@ -368,13 +392,8 @@ async function login(){
             document.getElementById('adminView').classList.add('hidden');
             document.getElementById('candidateView').classList.remove('hidden');
         }
-    }catch(e){
-        err.textContent=String(e.message);
-        err.classList.remove('hidden');
-    }finally{
-        btn.disabled=false;
-        btn.textContent='Ingresar al sistema';
-    }
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+    finally{btn.disabled=false;btn.textContent='Ingresar al sistema';}
 }
 
 function logout(){
@@ -385,22 +404,19 @@ function logout(){
 }
 
 function getRole(){
-    try{
-        return JSON.parse(atob(token.split('.')[1])).rol||'User';
-    }catch(e){
-        return 'User';
-    }
+    try{return JSON.parse(atob(token.split('.')[1])).rol||'User';}catch(e){return 'User';}
 }
 
 function showTab(name){
-    document.getElementById('analyzeSection').classList.add('hidden');
-    document.getElementById('searchSection').classList.add('hidden');
-    document.getElementById('usersSection').classList.add('hidden');
+    var sections=['analyze','search','cvs','users'];
+    sections.forEach(function(s){document.getElementById(s+'Section').classList.add('hidden');});
     document.getElementById(name+'Section').classList.remove('hidden');
-    document.getElementById('tab-analyze').className=name==='analyze'?'tab active':'tab';
-    document.getElementById('tab-search').className=name==='search'?'tab active':'tab';
-    document.getElementById('tab-users').className=name==='users'?'tab active':'tab';
+    sections.forEach(function(s){
+        var tab=document.getElementById('tab-'+s);
+        if(tab) tab.className=s===name?'tab active':'tab';
+    });
     if(name==='users') cargarUsuarios();
+    if(name==='cvs') cargarCVs();
 }
 
 async function procesarCV(){
@@ -412,11 +428,7 @@ async function procesarCV(){
     var out=document.getElementById('analyzeResult');
     err.classList.add('hidden');
     out.classList.add('hidden');
-    if(!file&&!texto){
-        err.textContent='Sube un archivo o pega el texto.';
-        err.classList.remove('hidden');
-        return;
-    }
+    if(!file&&!texto){err.textContent='Sube un archivo o pega el texto.';err.classList.remove('hidden');return;}
     btn.disabled=true;
     btn.textContent='Procesando...';
     try{
@@ -425,29 +437,16 @@ async function procesarCV(){
             var fd=new FormData();
             fd.append('file',file);
             fd.append('whatsapp',whatsapp);
-            res=await fetch(API_URL+'/cvs/procesar-archivo',{
-                method:'POST',
-                headers:{'Authorization':'Bearer '+token},
-                body:fd
-            });
+            res=await fetch(API_URL+'/cvs/procesar-archivo',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
         }else{
-            res=await fetch(API_URL+'/cvs/procesar-ia',{
-                method:'POST',
-                headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-                body:JSON.stringify({texto_cv:texto,whatsapp:whatsapp})
-            });
+            res=await fetch(API_URL+'/cvs/procesar-ia',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({texto_cv:texto,whatsapp:whatsapp})});
         }
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al procesar');
         out.textContent=data.status==='pendiente'?'✅ Archivo recibido. Procesando...':'✅ CV procesado correctamente.';
         out.classList.remove('hidden');
-    }catch(e){
-        err.textContent=String(e.message);
-        err.classList.remove('hidden');
-    }finally{
-        btn.disabled=false;
-        btn.innerHTML='<i class="fas fa-magic"></i> Procesar con IA';
-    }
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> Procesar con IA';}
 }
 
 async function procesarCVCandidato(){
@@ -458,35 +457,22 @@ async function procesarCVCandidato(){
     var out=document.getElementById('candResult');
     err.classList.add('hidden');
     out.classList.add('hidden');
-    if(!file){
-        err.textContent='Por favor, selecciona un archivo.';
-        err.classList.remove('hidden');
-        return;
-    }
+    if(!file){err.textContent='Por favor, selecciona un archivo.';err.classList.remove('hidden');return;}
     btn.disabled=true;
     btn.textContent='Enviando...';
     try{
         var fd=new FormData();
         fd.append('file',file);
         fd.append('whatsapp',whatsapp);
-        var res=await fetch(API_URL+'/cvs/procesar-archivo',{
-            method:'POST',
-            headers:{'Authorization':'Bearer '+token},
-            body:fd
-        });
+        var res=await fetch(API_URL+'/cvs/procesar-archivo',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al procesar');
         out.textContent='✅ ¡CV enviado con éxito!';
         out.classList.remove('hidden');
         document.getElementById('candCvFile').value='';
         document.getElementById('candWhatsapp').value='';
-    }catch(e){
-        err.textContent=String(e.message);
-        err.classList.remove('hidden');
-    }finally{
-        btn.disabled=false;
-        btn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar CV';
-    }
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar CV';}
 }
 
 async function buscarCandidatos(){
@@ -495,44 +481,28 @@ async function buscarCandidatos(){
     var err=document.getElementById('searchError');
     var box=document.getElementById('searchResults');
     err.classList.add('hidden');
-    if(!raw.trim()){
-        err.textContent='Ingresa al menos una habilidad.';
-        err.classList.remove('hidden');
-        return;
-    }
+    if(!raw.trim()){err.textContent='Ingresa al menos una habilidad.';err.classList.remove('hidden');return;}
     var skills=raw.split(',').map(function(s){return s.trim();}).filter(function(s){return s.length;});
     box.innerHTML='<p class="text-muted mt-4 text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
     try{
-        var res=await fetch(API_URL+'/cvs/buscar-candidatos',{
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-            body:JSON.stringify({skills_requeridas:skills,min_match_porcentaje:min})
-        });
+        var res=await fetch(API_URL+'/cvs/buscar-candidatos',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({skills_requeridas:skills,min_match_porcentaje:min})});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al buscar');
         box.innerHTML='';
-        if(!data.total_encontrados){
-            box.innerHTML='<p class="text-muted mt-4 text-center">No se encontraron candidatos.</p>';
-            return;
-        }
+        if(!data.total_encontrados){box.innerHTML='<p class="text-muted mt-4 text-center">No se encontraron candidatos.</p>';return;}
         var admin=getRole()==='Admin';
         data.candidatos.forEach(function(c){
             var card=document.createElement('div');
-            card.className='user-card';
-            var skillsHtml=(c.skills_coincidentes||[]).map(function(s){return '<span style="background:rgba(99,102,241,0.2);padding:6px 12px;border-radius:8px;font-size:12px;margin:3px;display:inline-block;">'+s+'</span>';}).join('');
+            card.className='cv-card';
+            var skillsHtml=(c.skills_coincidentes||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
             var waBtn=c.whatsapp?'<a class="btn btn-sm" style="background:#25D366;" target="_blank" href="https://wa.me/'+c.whatsapp.replace(/[^0-9]/g,'')+'"><i class="fab fa-whatsapp"></i> WhatsApp</a>':'';
             var revealBtn=admin?'<button class="btn btn-sm btn-primary reveal-btn"><i class="fas fa-unlock"></i> Revelar</button>':'';
-            card.innerHTML='<div style="flex:1;"><div style="font-size:16px;font-weight:700;margin-bottom:6px;">'+c.perfil_ciego_id+' <span style="background:rgba(16,185,129,0.25);color:#10b981;padding:6px 12px;border-radius:8px;font-size:12px;margin-left:8px;">'+c.match_porcentaje+'% match</span></div><div style="margin-bottom:10px;">'+skillsHtml+'</div><div style="background:rgba(15,23,42,0.8);padding:14px;border-radius:10px;font-size:13px;color:#94a3b8;font-style:italic;">'+(c.cv_redactado||'Sin perfil')+'</div></div><div style="display:flex;gap:10px;margin-top:16px;">'+waBtn+revealBtn+'</div><div class="hidden identity-box"></div>';
+            card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:12px;"><div style="font-size:16px;font-weight:700;">'+c.perfil_ciego_id+'</div><span style="background:rgba(16,185,129,0.25);color:#10b981;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;">'+c.match_porcentaje+'% match</span></div><div style="margin-bottom:12px;">'+skillsHtml+'</div><div class="cv-text">'+(c.cv_redactado||'Sin perfil')+'</div><div style="display:flex;gap:10px;margin-top:16px;">'+waBtn+revealBtn+'</div><div class="hidden identity-box"></div>';
             box.appendChild(card);
             var rb=card.querySelector('.reveal-btn');
-            if(rb){
-                rb.addEventListener('click',function(){revelarIdentidad(c.perfil_ciego_id,rb,card);});
-            }
+            if(rb){rb.addEventListener('click',function(){revelarIdentidad(c.perfil_ciego_id,rb,card);});}
         });
-    }catch(e){
-        err.textContent=String(e.message);
-        err.classList.remove('hidden');
-    }
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
 }
 
 async function revelarIdentidad(id,btn,card){
@@ -540,27 +510,100 @@ async function revelarIdentidad(id,btn,card){
     box.classList.remove('hidden');
     box.innerHTML='<p><i class="fas fa-spinner fa-spin"></i> Verificando...</p>';
     try{
-        var res=await fetch(API_URL+'/cvs/perfil/'+encodeURIComponent(id)+'/identidad',{
-            headers:{'Authorization':'Bearer '+token}
-        });
+        var res=await fetch(API_URL+'/cvs/perfil/'+encodeURIComponent(id)+'/identidad',{headers:{'Authorization':'Bearer '+token}});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Acceso denegado');
         var html='<p style="color:#818cf8;font-weight:700;margin-bottom:10px;">Revelado por: '+data.identidad_revelada_por+'</p>';
-        if(data.whatsapp){
-            html+='<p style="color:#10b981;margin-bottom:10px;"><i class="fab fa-whatsapp"></i> '+data.whatsapp+'</p>';
-        }
+        if(data.whatsapp){html+='<p style="color:#10b981;margin-bottom:10px;"><i class="fab fa-whatsapp"></i> '+data.whatsapp+'</p>';}
         html+='<pre style="white-space:pre-wrap;color:#cbd5e1;background:rgba(15,23,42,0.8);padding:14px;border-radius:10px;margin-top:10px;font-size:12px;">'+data.texto_original_completo+'</pre>';
         box.innerHTML=html;
         btn.disabled=true;
         btn.textContent='Revelado';
-    }catch(e){
-        box.innerHTML='<p style="color:#ef4444;">Error: '+String(e.message)+'</p>';
-    }
+    }catch(e){box.innerHTML='<p style="color:#ef4444;">Error: '+String(e.message)+'</p>';}
 }
 
-function toggleChat(){
-    document.getElementById('chatBox').classList.toggle('active');
+async function cargarCVs(){
+    var list=document.getElementById('cvsList');
+    list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando CVs...</p>';
+    try{
+        var res=await fetch(API_URL+'/cvs/',{headers:{'Authorization':'Bearer '+token}});
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error al cargar CVs');
+        if(data.length===0){list.innerHTML='<p class="text-muted text-center">No hay CVs en el sistema.</p>';return;}
+        var html='';
+        data.forEach(function(cv){
+            var statusClass=cv.status==='procesado'?'status-procesado':cv.status==='pendiente'?'status-pendiente':'status-error';
+            var statusText=cv.status.charAt(0).toUpperCase()+cv.status.slice(1);
+            var skillsHtml=(cv.skills||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
+            html+='<div class="cv-card">';
+            html+='<div class="cv-header">';
+            html+='<div class="cv-id"><i class="fas fa-file-alt" style="color:#818cf8;margin-right:8px;"></i>'+cv.perfil_ciego_id+'</div>';
+            html+='<span class="cv-status '+statusClass+'">'+statusText+'</span>';
+            html+='</div>';
+            if(cv.whatsapp){html+='<div style="color:#10b981;font-size:13px;margin-bottom:8px;"><i class="fab fa-whatsapp"></i> '+cv.whatsapp+'</div>';}
+            if(skillsHtml){html+='<div class="cv-skills"><strong style="color:#cbd5e1;font-size:13px;">Habilidades:</strong><br>'+skillsHtml+'</div>';}
+            if(cv.texto_redactado){html+='<div class="cv-text">'+cv.texto_redactado+'</div>';}
+            html+='</div>';
+        });
+        list.innerHTML=html;
+    }catch(e){list.innerHTML='<p class="text-error text-center">Error: '+String(e.message)+'</p>';}
 }
+
+async function cargarUsuarios(){
+    var list=document.getElementById('usersList');
+    list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
+    try{
+        var res=await fetch(API_URL+'/usuarios/',{headers:{'Authorization':'Bearer '+token}});
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error al cargar usuarios');
+        if(data.length===0){list.innerHTML='<p class="text-muted text-center">No hay usuarios registrados.</p>';return;}
+        var html='';
+        data.forEach(function(u){
+            var fecha=u.fecha_creacion?new Date(u.fecha_creacion).toLocaleDateString('es-AR'):'N/A';
+            var rolClass=u.rol==='Admin'?'role-admin':'role-user';
+            var rolText=u.rol==='Admin'?'Admin':'Candidato';
+            var nuevoRol=u.rol==='Admin'?'User':'Admin';
+            html+='<div class="user-card">';
+            html+='<div style="flex:1;">';
+            html+='<div class="user-name"><i class="fas fa-user" style="color:#818cf8;margin-right:8px;"></i>'+u.nombre+'</div>';
+            html+='<div class="user-date">Registrado: '+fecha+'</div>';
+            html+='</div>';
+            html+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+            html+='<span class="role-badge '+rolClass+'">'+rolText+'</span>';
+            html+='<button class="btn btn-sm btn-secondary" data-action="cambiar" data-id="'+u.id+'" data-rol="'+nuevoRol+'"><i class="fas fa-exchange-alt"></i> Cambiar</button>';
+            html+='<button class="btn btn-sm btn-danger" data-action="eliminar" data-id="'+u.id+'" data-nombre="'+u.nombre+'"><i class="fas fa-trash"></i></button>';
+            html+='</div>';
+            html+='</div>';
+        });
+        list.innerHTML=html;
+        list.querySelectorAll('[data-action="cambiar"]').forEach(function(btn){btn.addEventListener('click',function(){cambiarRol(btn.dataset.id,btn.dataset.rol);});});
+        list.querySelectorAll('[data-action="eliminar"]').forEach(function(btn){btn.addEventListener('click',function(){eliminarUsuario(btn.dataset.id,btn.dataset.nombre);});});
+    }catch(e){list.innerHTML='<p class="text-error text-center">Error: '+String(e.message)+'</p>';}
+}
+
+async function cambiarRol(userId,nuevoRol){
+    if(!confirm('¿Cambiar rol a '+nuevoRol+'?')) return;
+    try{
+        var res=await fetch(API_URL+'/usuarios/'+userId+'/rol?nuevo_rol='+nuevoRol,{method:'PUT',headers:{'Authorization':'Bearer '+token}});
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error');
+        alert('✅ '+data.mensaje);
+        cargarUsuarios();
+    }catch(e){alert('❌ Error: '+String(e.message));}
+}
+
+async function eliminarUsuario(userId,nombre){
+    if(!confirm('¿Eliminar a "'+nombre+'"?')) return;
+    try{
+        var res=await fetch(API_URL+'/usuarios/'+userId,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error');
+        alert('✅ '+data.mensaje);
+        cargarUsuarios();
+    }catch(e){alert('❌ Error: '+String(e.message));}
+}
+
+function toggleChat(){document.getElementById('chatBox').classList.toggle('active');}
 
 async function sendChat(){
     var input=document.getElementById('chatInput');
@@ -574,14 +617,8 @@ async function sendChat(){
     messagesContainer.scrollTop=messagesContainer.scrollHeight;
     try{
         var headers={'Content-Type':'application/json'};
-        if(token){
-            headers['Authorization']='Bearer '+token;
-        }
-        var res=await fetch(API_URL+'/chat/ask',{
-            method:'POST',
-            headers:headers,
-            body:JSON.stringify({message:message})
-        });
+        if(token){headers['Authorization']='Bearer '+token;}
+        var res=await fetch(API_URL+'/chat/ask',{method:'POST',headers:headers,body:JSON.stringify({message:message})});
         if(res.status===401){
             document.getElementById('typing').remove();
             messagesContainer.innerHTML+='<div class="chat-message bot"><div class="chat-bubble">🔒 Debes iniciar sesión para usar el chat.</div></div>';
@@ -598,88 +635,6 @@ async function sendChat(){
     }
 }
 
-async function cargarUsuarios(){
-    var list=document.getElementById('usersList');
-    list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
-    try{
-        var res=await fetch(API_URL+'/usuarios/',{
-            headers:{'Authorization':'Bearer '+token}
-        });
-        var data=await res.json();
-        if(!res.ok) throw new Error(data.detail||'Error al cargar usuarios');
-        if(data.length===0){
-            list.innerHTML='<p class="text-muted text-center">No hay usuarios registrados.</p>';
-            return;
-        }
-        var html='';
-        data.forEach(function(u){
-            var fecha=u.fecha_creacion?new Date(u.fecha_creacion).toLocaleDateString('es-AR'):'N/A';
-            var rolClass=u.rol==='Admin'?'role-admin':'role-user';
-            var rolText=u.rol==='Admin'?'Admin':'Candidato';
-            var nuevoRol=u.rol==='Admin'?'User':'Admin';
-            
-            html+='<div class="user-card">';
-            html+='<div style="flex:1;">';
-            html+='<div class="user-name">'+u.nombre+'</div>';
-            html+='<div class="user-date">Registrado: '+fecha+'</div>';
-            html+='</div>';
-            html+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
-            html+='<span class="role-badge '+rolClass+'">'+rolText+'</span>';
-            html+='<button class="btn btn-sm btn-secondary" data-action="cambiar" data-id="'+u.id+'" data-rol="'+nuevoRol+'"><i class="fas fa-exchange-alt"></i> Cambiar</button>';
-            html+='<button class="btn btn-sm" style="background:#ef4444;" data-action="eliminar" data-id="'+u.id+'" data-nombre="'+u.nombre+'"><i class="fas fa-trash"></i></button>';
-            html+='</div>';
-            html+='</div>';
-        });
-        list.innerHTML=html;
-        
-        list.querySelectorAll('[data-action="cambiar"]').forEach(function(btn){
-            btn.addEventListener('click',function(){
-                cambiarRol(btn.dataset.id,btn.dataset.rol);
-            });
-        });
-        
-        list.querySelectorAll('[data-action="eliminar"]').forEach(function(btn){
-            btn.addEventListener('click',function(){
-                eliminarUsuario(btn.dataset.id,btn.dataset.nombre);
-            });
-        });
-    }catch(e){
-        list.innerHTML='<p class="text-error text-center">Error: '+String(e.message)+'</p>';
-    }
-}
-
-async function cambiarRol(userId,nuevoRol){
-    if(!confirm('¿Cambiar rol a '+nuevoRol+'?')) return;
-    try{
-        var res=await fetch(API_URL+'/usuarios/'+userId+'/rol?nuevo_rol='+nuevoRol,{
-            method:'PUT',
-            headers:{'Authorization':'Bearer '+token}
-        });
-        var data=await res.json();
-        if(!res.ok) throw new Error(data.detail||'Error');
-        alert('✅ '+data.mensaje);
-        cargarUsuarios();
-    }catch(e){
-        alert('❌ Error: '+String(e.message));
-    }
-}
-
-async function eliminarUsuario(userId,nombre){
-    if(!confirm('¿Eliminar a "'+nombre+'"?')) return;
-    try{
-        var res=await fetch(API_URL+'/usuarios/'+userId,{
-            method:'DELETE',
-            headers:{'Authorization':'Bearer '+token}
-        });
-        var data=await res.json();
-        if(!res.ok) throw new Error(data.detail||'Error');
-        alert('✅ '+data.mensaje);
-        cargarUsuarios();
-    }catch(e){
-        alert('❌ Error: '+String(e.message));
-    }
-}
-
 async function cargarEstadisticas(){
     try{
         var res=await fetch(API_URL+'/stats');
@@ -687,9 +642,7 @@ async function cargarEstadisticas(){
         document.getElementById('statTotalCVs').textContent=data.total_cvs;
         document.getElementById('statProcesados').textContent=data.cvs_procesados;
         document.getElementById('statSkills').textContent=data.total_skills;
-    }catch(e){
-        console.log('Error:',e);
-    }
+    }catch(e){console.log('Error:',e);}
 }
 cargarEstadisticas();
 </script>
