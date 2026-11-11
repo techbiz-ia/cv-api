@@ -1,49 +1,38 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import json
 
-from app.database import SessionLocal
-from app.models.cv import CV
+from app.database import get_db
+from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 @router.get("/lista")
 def listar_cvs(db: Session = Depends(get_db)):
-    cvs = db.query(CV).all()
+    cvs = db.query(CVDB).all()
     resultado = []
+    
     for cv in cvs:
-        habilidades = []
-        if cv.habilidades:
-            try:
-                habilidades = json.loads(cv.habilidades) if isinstance(cv.habilidades, str) else cv.habilidades
-            except Exception:
-                habilidades = [str(cv.habilidades)]
+        # Extraer habilidades de la relación real 'skills'
+        habilidades = [s.skill for s in cv.skills] if cv.skills else []
         
         resultado.append({
             "id": cv.id,
-            "nombre": cv.nombre,
-            "email": cv.email,
-            "telefono": cv.telefono,
-            "puesto_buscado": cv.puesto_buscado,
-            "estado": cv.estado,
+            "nombre_completo": cv.perfil_ciego_id or "Nombre no disponible",
+            "whatsapp": cv.whatsapp,
+            "email": None,  # El frontend lo maneja bien si es null
+            "status": cv.status,
             "habilidades": habilidades,
-            "resumen_profesional": cv.resumen_profesional
+            "experiencia_resumen": cv.redacted_text or cv.source_text or "Sin resumen disponible"
         })
+        
     return {"total": len(resultado), "cvs": resultado}
 
-# --- ÚNICO AGREGADO: Endpoint para eliminar ---
 @router.delete("/{cv_id}", status_code=200)
 def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
-    cv = db.query(CV).filter(CV.id == cv_id).first()
+    cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
+    
     db.delete(cv)
     db.commit()
     return {"mensaje": "CV eliminado correctamente", "id_eliminado": cv_id}
