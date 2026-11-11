@@ -1,10 +1,18 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.database import SessionLocal
 from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
+
+# Definimos get_db localmente, exactamente como en usuarios.py
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.get("/lista")
 def listar_cvs(db: Session = Depends(get_db)):
@@ -12,14 +20,13 @@ def listar_cvs(db: Session = Depends(get_db)):
     resultado = []
     
     for cv in cvs:
-        # Extraer habilidades de la relación real 'skills'
         habilidades = [s.skill for s in cv.skills] if cv.skills else []
         
         resultado.append({
             "id": cv.id,
             "nombre_completo": cv.perfil_ciego_id or "Nombre no disponible",
             "whatsapp": cv.whatsapp,
-            "email": None,  # El frontend lo maneja bien si es null
+            "email": None,
             "status": cv.status,
             "habilidades": habilidades,
             "experiencia_resumen": cv.redacted_text or cv.source_text or "Sin resumen disponible"
