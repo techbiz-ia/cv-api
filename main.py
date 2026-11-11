@@ -21,7 +21,20 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["https://cv-api-1-ps8r.onrender.com"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+# CORRECCIÓN 1: Se agregan localhost para que el navegador permita la conexión desde tu PC
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "https://cv-api-1-ps8r.onrender.com"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(usuarios.router)
 app.include_router(cvs.router)
 
@@ -306,7 +319,6 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 var token="";
 var API_URL="https://cv-api-1-ps8r.onrender.com";
 
-// Typing animation
 var typingTexts=['Procesamiento ético con IA','Blind Hiring garantizado','Búsqueda inteligente de talento','Privacidad por diseño'];
 var typingIndex=0,typingCharIndex=0;
 var typingElement=document.getElementById('typingText');
@@ -522,31 +534,57 @@ async function revelarIdentidad(id,btn,card){
     }catch(e){box.innerHTML='<p style="color:#ef4444;">Error: '+String(e.message)+'</p>';}
 }
 
+// CORRECCIÓN 2: Función actualizada para llamar a /cvs/lista y usar los campos correctos del backend
 async function cargarCVs(){
     var list=document.getElementById('cvsList');
     list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando CVs...</p>';
     try{
-        var res=await fetch(API_URL+'/cvs/',{headers:{'Authorization':'Bearer '+token}});
+        var res=await fetch(API_URL+'/cvs/lista',{headers:{'Authorization':'Bearer '+token}});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al cargar CVs');
-        if(data.length===0){list.innerHTML='<p class="text-muted text-center">No hay CVs en el sistema.</p>';return;}
+        if(!data.cvs || data.cvs.length===0){list.innerHTML='<p class="text-muted text-center">No hay CVs en el sistema.</p>';return;}
         var html='';
-        data.forEach(function(cv){
+        data.cvs.forEach(function(cv){
             var statusClass=cv.status==='procesado'?'status-procesado':cv.status==='pendiente'?'status-pendiente':'status-error';
             var statusText=cv.status.charAt(0).toUpperCase()+cv.status.slice(1);
-            var skillsHtml=(cv.skills||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
-            html+='<div class="cv-card">';
+            var skillsHtml=(cv.habilidades||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
+            var nombre = cv.nombre_completo || cv.perfil_ciego_id || 'CV-'+cv.id;
+            var texto = cv.experiencia_resumen || cv.texto_redactado || 'Sin resumen disponible';
+            
+            html+='<div class="cv-card" id="cv-card-'+cv.id+'">';
             html+='<div class="cv-header">';
-            html+='<div class="cv-id"><i class="fas fa-file-alt" style="color:#818cf8;margin-right:8px;"></i>'+cv.perfil_ciego_id+'</div>';
+            html+='<div class="cv-id"><i class="fas fa-file-alt" style="color:#818cf8;margin-right:8px;"></i>'+nombre+'</div>';
             html+='<span class="cv-status '+statusClass+'">'+statusText+'</span>';
             html+='</div>';
             if(cv.whatsapp){html+='<div style="color:#10b981;font-size:13px;margin-bottom:8px;"><i class="fab fa-whatsapp"></i> '+cv.whatsapp+'</div>';}
             if(skillsHtml){html+='<div class="cv-skills"><strong style="color:#cbd5e1;font-size:13px;">Habilidades:</strong><br>'+skillsHtml+'</div>';}
-            if(cv.texto_redactado){html+='<div class="cv-text">'+cv.texto_redactado+'</div>';}
+            if(texto){html+='<div class="cv-text">'+texto+'</div>';}
+            
+            // AGREGADO: Botón de eliminar
+            html+='<div style="margin-top:16px; display:flex; gap:10px;">';
+            html+='<button class="btn btn-sm btn-danger" onclick="eliminarCV('+cv.id+')"><i class="fas fa-trash"></i> Eliminar del sistema</button>';
+            html+='</div>';
             html+='</div>';
         });
         list.innerHTML=html;
     }catch(e){list.innerHTML='<p class="text-error text-center">Error: '+String(e.message)+'</p>';}
+}
+
+// AGREGADO: Función para eliminar CV
+async function eliminarCV(cvId){
+    if(!confirm('⚠️ ¿Estás seguro de que deseas eliminar este CV del sistema?\\n\\nEsta acción no se puede deshacer.')) return;
+    try{
+        var res=await fetch(API_URL+'/cvs/'+cvId, {
+            method:'DELETE',
+            headers:{'Authorization':'Bearer '+token}
+        });
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error al eliminar');
+        alert('✅ '+data.mensaje);
+        cargarCVs();
+    }catch(e){
+        alert('❌ Error: '+String(e.message));
+    }
 }
 
 async function cargarUsuarios(){
