@@ -11,6 +11,10 @@ from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
 
+# Carpeta donde se guardarán los archivos PDF originales
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 def get_db():
     db = SessionLocal()
     try:
@@ -21,6 +25,7 @@ def get_db():
 class ProcesarIARequest(BaseModel):
     texto_cv: str
     whatsapp: str = ""
+    archivo_pdf: str = None
 
 def analizar_con_ia(texto: str):
     api_key = os.getenv("OPENAI_API_KEY")
@@ -65,10 +70,11 @@ def procesar_ia(request: ProcesarIARequest, db: Session = Depends(get_db)):
     
     nuevo_cv = CVDB(
         perfil_ciego_id=perfil_ciego_id,
-        source_text=request.texto_cv,
-        redacted_text=resultado_ia.get("resumen_redactado", "Error al redactar"),
+        source_text="Texto pegado manualmente", # Optimizado: no guardamos el texto gigante
+        redacted_text=resultado_ia.get("resumen_redactado", "Resumen generado por IA"),
         status="procesado",
-        whatsapp=request.whatsapp or None
+        whatsapp=request.whatsapp or None,
+        archivo_pdf=request.archivo_pdf # Será None si es texto pegado
     )
     db.add(nuevo_cv)
     db.flush()
@@ -98,20 +104,29 @@ async def procesar_archivo(
     if not (filename.endswith('.pdf') or filename.endswith('.docx') or filename.endswith('.txt')):
         raise HTTPException(status_code=400, detail="Solo se permiten archivos .pdf, .docx o .txt")
     
+    # 1. Guardar el archivo físico con nombre único para evitar colisiones
+    unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    
+    contenido_bytes = await file.read()
+    with open(file_path, "wb") as buffer:
+        buffer.write(contenido_bytes)
+    
+    # 2. Extraer texto temporalmente SOLO para que la IA lo analice
     contenido = ""
     try:
         if filename.endswith('.txt'):
-            contenido = (await file.read()).decode("utf-8")
+            contenido = contenido_bytes.decode("utf-8")
         elif filename.endswith('.pdf'):
             import PyPDF2
             import io
-            reader = PyPDF2.PdfReader(io.BytesIO(await file.read()))
+            reader = PyPDF2.PdfReader(io.BytesIO(contenido_bytes))
             for page in reader.pages:
                 contenido += page.extract_text() + "\n"
         elif filename.endswith('.docx'):
             import docx
             import io
-            doc = docx.Document(io.BytesIO(await file.read()))
+            doc = docx.Document(io.BytesIO(contenido_bytes))
             contenido = "\n".join([para.text for para in doc.paragraphs])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al leer el archivo: {str(e)}")
@@ -119,8 +134,37 @@ async def procesar_archivo(
     if not contenido.strip():
         raise HTTPException(status_code=400, detail="No se pudo extraer texto del archivo.")
     
-    request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp)
-    return procesar_ia(request, db)
+    # 3. Analizar con IA y guardar en BD de forma optimizada
+    request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp, archivo_pdf=unique_filename)
+    
+    resultado_ia = analizar_con_ia(request.texto_cv)
+    perfil_ciego_id = f"cv_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    nuevo_cv = CVDB(
+        perfil_ciego_id=perfil_ciego_id,
+        source_text=f"Archivo: {unique_filename}", # Optimizado: solo guardamos la referencia
+        redacted_text=resultado_ia.get("resumen_redactado", "Resumen generado por IA"),
+        status="procesado",
+        whatsapp=request.whatsapp or None,
+        archivo_pdf=unique_filename # <-- Aquí guardamos el nombre del archivo PDF
+    )
+    db.add(nuevo_cv)
+    db.flush()
+    
+    habilidades = resultado_ia.get("habilidades", [])
+    for skill_name in habilidades:
+        skill = SkillDB(skill=skill_name, cv_id=nuevo_cv.id)
+        db.add(skill)
+    
+    db.commit()
+    db.refresh(nuevo_cv)
+    
+    return {
+        "status": "procesado",
+        "perfil_ciego_id": nuevo_cv.perfil_ciego_id,
+        "skills_extraidas": habilidades,
+        "texto_redactado": nuevo_cv.redacted_text
+    }
 
 @router.get("/lista")
 def listar_cvs(db: Session = Depends(get_db)):
@@ -136,7 +180,8 @@ def listar_cvs(db: Session = Depends(get_db)):
             "email": None,
             "status": cv.status,
             "habilidades": habilidades,
-            "experiencia_resumen": cv.redacted_text or cv.source_text or "Sin resumen disponible"
+            "experiencia_resumen": cv.redacted_text or cv.source_text or "Sin resumen disponible",
+            "archivo_pdf": cv.archivo_pdf # <-- Agregado para que el frontend sepa que existe el archivo
         })
 
     return {"total": len(resultado), "cvs": resultado}
@@ -146,6 +191,12 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
+
+    # Opcional: Eliminar también el archivo físico para limpiar espacio
+    if cv.archivo_pdf:
+        file_path = os.path.join(UPLOAD_DIR, cv.archivo_pdf)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     db.delete(cv)
     db.commit()

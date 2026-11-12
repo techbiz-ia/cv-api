@@ -6,12 +6,14 @@ class CVDB(Base):
     __tablename__ = "cvs"
     id = Column(Integer, primary_key=True, index=True)
     perfil_ciego_id = Column(String, unique=True, index=True)
-    source_text = Column(Text)
+    source_text = Column(Text) 
     redacted_text = Column(Text)
     status = Column(String, default="pendiente")
     redacted_count = Column(Integer, default=0)
-    whatsapp = Column(String, nullable=True)  # Número de WhatsApp del candidato (opcional)
-    
+    whatsapp = Column(String, nullable=True)
+        archivo_pdf = Column(String, nullable=True)  # Agrega esta línea justo debajo de whatsapp
+    archivo_pdf = Column(String, nullable=True)  # <-- NUEVA COLUMNA para guardar el nombre del archivo
+
     skills = relationship("SkillDB", back_populates="cv", cascade="all, delete-orphan")
 
 class SkillDB(Base):
@@ -19,7 +21,5 @@ class SkillDB(Base):
     id = Column(Integer, primary_key=True, index=True)
     skill = Column(String, index=True)
     cv_id = Column(Integer, ForeignKey("cvs.id"))
-    
-    cv = relationship("CVDB", back_populates="skills")
 
-# NOTA: No hay create_all aquí. Se hace en main.py
+    cv = relationship("CVDB", back_populates="skills")

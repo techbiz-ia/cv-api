@@ -19,6 +19,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️ Info whatsapp: {e}")
     yield
+    conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS archivo_pdf VARCHAR;"))
 
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
 
