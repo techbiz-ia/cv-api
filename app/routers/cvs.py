@@ -5,15 +5,18 @@ import os
 import json
 from datetime import datetime
 from openai import OpenAI
-from fastapi.responses import FileResponse
+from supabase import create_client, Client
 
 from app.database import SessionLocal
 from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Configuración de Supabase
+supabase: Client = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_KEY")
+)
 
 def get_db():
     db = SessionLocal()
@@ -90,13 +93,19 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     if not (filename.endswith('.pdf') or filename.endswith('.docx') or filename.endswith('.txt')):
         raise HTTPException(status_code=400, detail="Solo se permiten archivos .pdf, .docx o .txt")
     
-    unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
-    
     contenido_bytes = await file.read()
-    with open(file_path, "wb") as buffer:
-        buffer.write(contenido_bytes)
     
+    # 1. Subir a Supabase Storage
+    try:
+        file_path = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+        upload_result = supabase.storage.from_("cvs").upload(file_path, contenido_bytes)
+        
+        # Obtener la URL pública del archivo
+        pdf_url = supabase.storage.from_("cvs").get_public_url(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir el archivo a Supabase: {str(e)}")
+    
+    # 2. Extraer texto para la IA
     contenido = ""
     try:
         if filename.endswith('.txt'):
@@ -114,17 +123,18 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     if not contenido.strip():
         raise HTTPException(status_code=400, detail="No se pudo extraer texto del archivo.")
     
-    request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp, archivo_pdf=unique_filename)
+    # 3. Analizar con IA y guardar en BD
+    request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp, archivo_pdf=pdf_url)
     resultado_ia = analizar_con_ia(request.texto_cv)
     perfil_ciego_id = f"cv_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
     nuevo_cv = CVDB(
         perfil_ciego_id=perfil_ciego_id,
-        source_text=f"Archivo: {unique_filename}",
+        source_text=f"Archivo: {file.filename}",
         redacted_text=resultado_ia.get("resumen_redactado", "Resumen generado por IA"),
         status="procesado",
         whatsapp=request.whatsapp or None,
-        archivo_pdf=unique_filename
+        archivo_pdf=pdf_url
     )
     db.add(nuevo_cv)
     db.flush()
@@ -135,13 +145,6 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     db.commit()
     db.refresh(nuevo_cv)
     return {"status": "procesado", "perfil_ciego_id": nuevo_cv.perfil_ciego_id, "skills_extraidas": resultado_ia.get("habilidades", []), "texto_redactado": nuevo_cv.redacted_text}
-
-@router.get("/archivo/{filename}")
-def descargar_archivo(filename: str):
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Archivo no encontrado")
-    return FileResponse(file_path, media_type='application/pdf', filename=filename)
 
 @router.get("/lista")
 def listar_cvs(db: Session = Depends(get_db)):
@@ -165,10 +168,16 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     cv = db.query(CVDB).filter(CVDB.id == cv_id).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
-    if cv.archivo_pdf:
-        file_path = os.path.join(UPLOAD_DIR, cv.archivo_pdf)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+    
+    # Eliminar también de Supabase Storage
+    if cv.archivo_pdf and "supabase.co" in cv.archivo_pdf:
+        try:
+            # Extraer el path del archivo de la URL
+            file_path = cv.archivo_pdf.split("/cvs/")[1]
+            supabase.storage.from_("cvs").remove([file_path])
+        except:
+            pass
+            
     db.delete(cv)
     db.commit()
     return {"mensaje": "CV eliminado correctamente", "id_eliminado": cv_id}

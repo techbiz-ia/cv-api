@@ -467,8 +467,8 @@ async function cargarCVs(){
             html+='</div>';
             html+='<div style="display:flex; gap:10px; margin-top:8px;">';
             if(cv.archivo_pdf){
-                html+='<a href="'+API_URL+'/cvs/archivo/'+cv.archivo_pdf+'" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; flex:1; justify-content:center;"><i class="fas fa-file-pdf"></i> Ver PDF Original</a>';
-            } else {
+    html+='<a href="'+cv.archivo_pdf+'" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; flex:1; justify-content:center;"><i class="fas fa-file-pdf"></i> Ver PDF Original</a>';
+}
                 html+='<button class="btn btn-sm btn-secondary" disabled style="flex:1; opacity:0.5; cursor:not-allowed; justify-content:center;"><i class="fas fa-file-pdf"></i> Sin PDF</button>';
             }
             html+='<button class="btn btn-sm btn-danger" onclick="eliminarCV('+cv.id+')" style="width:auto; padding:10px 16px;"><i class="fas fa-trash"></i></button>';
