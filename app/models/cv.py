@@ -6,13 +6,12 @@ class CVDB(Base):
     __tablename__ = "cvs"
     id = Column(Integer, primary_key=True, index=True)
     perfil_ciego_id = Column(String, unique=True, index=True)
-    source_text = Column(Text) 
+    source_text = Column(Text)
     redacted_text = Column(Text)
     status = Column(String, default="pendiente")
     redacted_count = Column(Integer, default=0)
     whatsapp = Column(String, nullable=True)
-        archivo_pdf = Column(String, nullable=True)  # Agrega esta línea justo debajo de whatsapp
-    archivo_pdf = Column(String, nullable=True)  # <-- NUEVA COLUMNA para guardar el nombre del archivo
+    archivo_pdf = Column(String, nullable=True)
 
     skills = relationship("SkillDB", back_populates="cv", cascade="all, delete-orphan")
 
