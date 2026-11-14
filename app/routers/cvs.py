@@ -12,11 +12,28 @@ from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
 
-# Configuración de Supabase
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-)
+# ==========================================
+# 🔍 BLOQUE DE DIAGNÓSTICO DE VARIABLES
+# ==========================================
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+
+print("==================================================")
+print(f"🔍 DEBUG: SUPABASE_URL existe: {bool(supabase_url)}")
+print(f"🔍 DEBUG: SUPABASE_KEY existe: {bool(supabase_key)}")
+if supabase_key:
+    print(f"🔍 DEBUG: SUPABASE_KEY empieza con: '{supabase_key[:15]}...' y tiene {len(supabase_key)} caracteres.")
+else:
+    print("❌ ERROR: SUPABASE_KEY es None o está vacía. Revisa el nombre de la variable en Render.")
+print("==================================================")
+
+try:
+    supabase: Client = create_client(supabase_url, supabase_key)
+    print("✅ Supabase inicializado correctamente.")
+except Exception as e:
+    print(f"❌ ERROR CRÍTICO AL INICIAR SUPABASE: {e}")
+    raise e
+# ==========================================
 
 def get_db():
     db = SessionLocal()
@@ -95,17 +112,13 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     
     contenido_bytes = await file.read()
     
-    # 1. Subir a Supabase Storage
     try:
         file_path = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
         upload_result = supabase.storage.from_("cvs").upload(file_path, contenido_bytes)
-        
-        # Obtener la URL pública del archivo
         pdf_url = supabase.storage.from_("cvs").get_public_url(file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir el archivo a Supabase: {str(e)}")
     
-    # 2. Extraer texto para la IA
     contenido = ""
     try:
         if filename.endswith('.txt'):
@@ -123,7 +136,6 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     if not contenido.strip():
         raise HTTPException(status_code=400, detail="No se pudo extraer texto del archivo.")
     
-    # 3. Analizar con IA y guardar en BD
     request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp, archivo_pdf=pdf_url)
     resultado_ia = analizar_con_ia(request.texto_cv)
     perfil_ciego_id = f"cv_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -169,10 +181,8 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
     
-    # Eliminar también de Supabase Storage
     if cv.archivo_pdf and "supabase.co" in cv.archivo_pdf:
         try:
-            # Extraer el path del archivo de la URL
             file_path = cv.archivo_pdf.split("/cvs/")[1]
             supabase.storage.from_("cvs").remove([file_path])
         except:
