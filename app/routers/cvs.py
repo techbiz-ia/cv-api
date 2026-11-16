@@ -5,35 +5,12 @@ import os
 import json
 from datetime import datetime
 from openai import OpenAI
-from supabase import create_client, Client
+import io
 
 from app.database import SessionLocal
 from app.models.cv import CVDB, SkillDB
 
 router = APIRouter(prefix="/cvs", tags=["CVs"])
-
-# ==========================================
-# 🔍 BLOQUE DE DIAGNÓSTICO DE VARIABLES
-# ==========================================
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
-
-print("==================================================")
-print(f"🔍 DEBUG: SUPABASE_URL existe: {bool(supabase_url)}")
-print(f"🔍 DEBUG: SUPABASE_KEY existe: {bool(supabase_key)}")
-if supabase_key:
-    print(f"🔍 DEBUG: SUPABASE_KEY empieza con: '{supabase_key[:15]}...' y tiene {len(supabase_key)} caracteres.")
-else:
-    print("❌ ERROR: SUPABASE_KEY es None o está vacía. Revisa el nombre de la variable en Render.")
-print("==================================================")
-
-try:
-    supabase: Client = create_client(supabase_url, supabase_key)
-    print("✅ Supabase inicializado correctamente.")
-except Exception as e:
-    print(f"❌ ERROR CRÍTICO AL INICIAR SUPABASE: {e}")
-    raise e
-# ==========================================
 
 def get_db():
     db = SessionLocal()
@@ -45,7 +22,7 @@ def get_db():
 class ProcesarIARequest(BaseModel):
     texto_cv: str
     whatsapp: str = ""
-    archivo_pdf: str = None
+    archivo_pdf: str = "" # Ahora solo guardaremos el nombre del archivo, no la URL de Supabase
 
 def analizar_con_ia(texto: str):
     api_key = os.getenv("OPENAI_API_KEY")
@@ -92,7 +69,7 @@ def procesar_ia(request: ProcesarIARequest, db: Session = Depends(get_db)):
         redacted_text=resultado_ia.get("resumen_redactado", "Resumen generado por IA"),
         status="procesado",
         whatsapp=request.whatsapp or None,
-        archivo_pdf=request.archivo_pdf
+        archivo_pdf="Texto manual"
     )
     db.add(nuevo_cv)
     db.flush()
@@ -102,7 +79,12 @@ def procesar_ia(request: ProcesarIARequest, db: Session = Depends(get_db)):
     
     db.commit()
     db.refresh(nuevo_cv)
-    return {"status": "procesado", "perfil_ciego_id": nuevo_cv.perfil_ciego_id, "skills_extraidas": resultado_ia.get("habilidades", []), "texto_redactado": nuevo_cv.redacted_text}
+    return {
+        "status": "procesado", 
+        "perfil_ciego_id": nuevo_cv.perfil_ciego_id, 
+        "skills_extraidas": resultado_ia.get("habilidades", []), 
+        "texto_redactado": nuevo_cv.redacted_text
+    }
 
 @router.post("/procesar-archivo", status_code=201)
 async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""), db: Session = Depends(get_db)):
@@ -110,43 +92,46 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     if not (filename.endswith('.pdf') or filename.endswith('.docx') or filename.endswith('.txt')):
         raise HTTPException(status_code=400, detail="Solo se permiten archivos .pdf, .docx o .txt")
     
+    # Límite de seguridad: 10MB
+    file.file.seek(0, 2) # Ir al final
+    size = file.file.tell()
+    file.file.seek(0) # Volver al inicio
+    if size > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="El archivo excede el límite de 10MB.")
+
     contenido_bytes = await file.read()
-    
-    try:
-        file_path = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
-        upload_result = supabase.storage.from_("cvs").upload(file_path, contenido_bytes)
-        pdf_url = supabase.storage.from_("cvs").get_public_url(file_path)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al subir el archivo a Supabase: {str(e)}")
-    
     contenido = ""
+    
     try:
         if filename.endswith('.txt'):
             contenido = contenido_bytes.decode("utf-8")
         elif filename.endswith('.pdf'):
-            import PyPDF2, io
-            for page in PyPDF2.PdfReader(io.BytesIO(contenido_bytes)).pages:
+            import PyPDF2
+            reader = PyPDF2.PdfReader(io.BytesIO(contenido_bytes))
+            for page in reader.pages:
                 contenido += page.extract_text() + "\n"
         elif filename.endswith('.docx'):
-            import docx, io
-            contenido = "\n".join([para.text for para in docx.Document(io.BytesIO(contenido_bytes)).paragraphs])
+            import docx
+            doc = docx.Document(io.BytesIO(contenido_bytes))
+            contenido = "\n".join([para.text for para in doc.paragraphs])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al leer el archivo: {str(e)}")
     
     if not contenido.strip():
-        raise HTTPException(status_code=400, detail="No se pudo extraer texto del archivo.")
+        raise HTTPException(status_code=400, detail="No se pudo extraer texto del archivo. Asegúrate de que sea un PDF con texto seleccionable.")
     
-    request = ProcesarIARequest(texto_cv=contenido, whatsapp=whatsapp, archivo_pdf=pdf_url)
-    resultado_ia = analizar_con_ia(request.texto_cv)
+    # Procesar con IA
+    resultado_ia = analizar_con_ia(contenido)
     perfil_ciego_id = f"cv_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
+    # Guardar SOLO en SQLite (sin almacenar el archivo físico en ningún lado)
     nuevo_cv = CVDB(
         perfil_ciego_id=perfil_ciego_id,
         source_text=f"Archivo: {file.filename}",
         redacted_text=resultado_ia.get("resumen_redactado", "Resumen generado por IA"),
         status="procesado",
-        whatsapp=request.whatsapp or None,
-        archivo_pdf=pdf_url
+        whatsapp=whatsapp or None,
+        archivo_pdf=file.filename # Guardamos solo el nombre como referencia, no el archivo
     )
     db.add(nuevo_cv)
     db.flush()
@@ -156,7 +141,13 @@ async def procesar_archivo(file: UploadFile = File(...), whatsapp: str = Form(""
     
     db.commit()
     db.refresh(nuevo_cv)
-    return {"status": "procesado", "perfil_ciego_id": nuevo_cv.perfil_ciego_id, "skills_extraidas": resultado_ia.get("habilidades", []), "texto_redactado": nuevo_cv.redacted_text}
+    
+    return {
+        "status": "procesado", 
+        "perfil_ciego_id": nuevo_cv.perfil_ciego_id, 
+        "skills_extraidas": resultado_ia.get("habilidades", []), 
+        "texto_redactado": nuevo_cv.redacted_text
+    }
 
 @router.get("/lista")
 def listar_cvs(db: Session = Depends(get_db)):
@@ -181,13 +172,7 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     if not cv:
         raise HTTPException(status_code=404, detail="CV no encontrado")
     
-    if cv.archivo_pdf and "supabase.co" in cv.archivo_pdf:
-        try:
-            file_path = cv.archivo_pdf.split("/cvs/")[1]
-            supabase.storage.from_("cvs").remove([file_path])
-        except:
-            pass
-            
+    # Eliminamos únicamente de la base de datos SQLite (ya no hay Supabase Storage)
     db.delete(cv)
     db.commit()
-    return {"mensaje": "CV eliminado correctamente", "id_eliminado": cv_id}
+    return {"mensaje": "CV eliminado correctamente del sistema", "id_eliminado": cv_id}
