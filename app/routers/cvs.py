@@ -1,6 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import List
 import os
 import json
 from datetime import datetime
@@ -176,3 +177,63 @@ def eliminar_cv(cv_id: int, db: Session = Depends(get_db)):
     db.delete(cv)
     db.commit()
     return {"mensaje": "CV eliminado correctamente del sistema", "id_eliminado": cv_id}
+
+# ==========================================
+# AGREGADOS: Búsqueda de candidatos y Estadísticas
+# ==========================================
+
+class BuscarCandidatosRequest(BaseModel):
+    skills_requeridas: List[str]
+    min_match_porcentaje: int = 50
+
+@router.post("/buscar-candidatos")
+def buscar_candidatos(request: BuscarCandidatosRequest, db: Session = Depends(get_db)):
+    # Normalizar skills requeridas a minúsculas
+    skills_req = [s.lower().strip() for s in request.skills_requeridas if s.strip()]
+    if not skills_req:
+        return {"total_encontrados": 0, "candidatos": []}
+    
+    cvs = db.query(CVDB).filter(CVDB.status == "procesado").all()
+    candidatos = []
+    
+    for cv in cvs:
+        skills_cv = [s.skill.lower().strip() for s in cv.skills]
+        
+        matches = 0
+        skills_coincidentes = []
+        
+        # Buscar coincidencias parciales o totales
+        for s_req in skills_req:
+            for s_cv in skills_cv:
+                if s_req in s_cv or s_cv in s_req:
+                    matches += 1
+                    skills_coincidentes.append(s_cv)
+                    break # Evitar contar la misma skill requerida dos veces
+        
+        # Calcular porcentaje
+        match_porcentaje = int((matches / len(skills_req)) * 100) if len(skills_req) > 0 else 0
+        
+        if match_porcentaje >= request.min_match_porcentaje:
+            candidatos.append({
+                "perfil_ciego_id": cv.perfil_ciego_id,
+                "match_porcentaje": match_porcentaje,
+                "skills_coincidentes": list(set(skills_coincidentes)), # Quitar duplicados
+                "cv_redactado": cv.redacted_text,
+                "whatsapp": cv.whatsapp
+            })
+            
+    # Ordenar por mayor porcentaje de match primero
+    candidatos.sort(key=lambda x: x["match_porcentaje"], reverse=True)
+    
+    return {"total_encontrados": len(candidatos), "candidatos": candidatos}
+
+@router.get("/stats")
+def obtener_estadisticas(db: Session = Depends(get_db)):
+    total_cvs = db.query(CVDB).count()
+    cvs_procesados = db.query(CVDB).filter(CVDB.status == "procesado").count()
+    total_skills = db.query(SkillDB).count()
+    return {
+        "total_cvs": total_cvs,
+        "cvs_procesados": cvs_procesados,
+        "total_skills": total_skills
+    }
