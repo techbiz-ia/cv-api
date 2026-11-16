@@ -467,10 +467,9 @@ async function cargarCVs(){
             html+='</div>';
             html+='<div style="display:flex; gap:10px; margin-top:8px;">';
             if(cv.archivo_pdf){
-    html+='<a href="'+cv.archivo_pdf+'" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; flex:1; justify-content:center;"><i class="fas fa-file-pdf"></i> Ver PDF Original</a>';
-}
-                html+='<button class="btn btn-sm btn-secondary" disabled style="flex:1; opacity:0.5; cursor:not-allowed; justify-content:center;"><i class="fas fa-file-pdf"></i> Sin PDF</button>';
+                html+='<a href="'+cv.archivo_pdf+'" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; flex:1; justify-content:center;"><i class="fas fa-file-pdf"></i> Ver PDF Original</a>';
             }
+            html+='<button class="btn btn-sm btn-secondary" disabled style="flex:1; opacity:0.5; cursor:not-allowed; justify-content:center;"><i class="fas fa-file-pdf"></i> Sin PDF</button>';
             html+='<button class="btn btn-sm btn-danger" onclick="eliminarCV('+cv.id+')" style="width:auto; padding:10px 16px;"><i class="fas fa-trash"></i></button>';
             html+='</div></div>';
         });
@@ -479,7 +478,7 @@ async function cargarCVs(){
 }
 
 async function eliminarCV(cvId){
-    if(!confirm('⚠️ ¿Estás seguro de que deseas eliminar este CV del sistema?\\n\\nEsta acción no se puede deshacer.')) return;
+    if(!confirm('¿Estas seguro de que deseas eliminar este CV del sistema? Esta accion no se puede deshacer.')) return;
     try{
         var res=await fetch(API_URL+'/cvs/'+cvId, {method:'DELETE', headers:{'Authorization':'Bearer '+token}});
         var data=await res.json();
