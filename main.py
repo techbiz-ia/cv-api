@@ -9,39 +9,38 @@ import app.models.cv
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Crear tablas base que no existan
     Base.metadata.create_all(bind=engine)
     print("✅ Tablas base verificadas.")
     
-    # 2. Migraciones manuales de columnas (INDEPENDIENTES para evitar bloqueos)
     from sqlalchemy import text
     with engine.connect() as conn:
-        
-        # Intentar agregar columnas a 'cvs' (si falla, no detiene lo demás)
         try:
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS whatsapp VARCHAR;"))
             conn.commit()
-            print("✅ Columna 'whatsapp' en cvs verificada.")
         except Exception as e:
             print(f"⚠️ cvs whatsapp: {e}")
 
         try:
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS archivo_pdf VARCHAR;"))
             conn.commit()
-            print("✅ Columna 'archivo_pdf' en cvs verificada.")
         except Exception as e:
             print(f"⚠️ cvs archivo_pdf: {e}")
 
-        # Intentar agregar columna a 'usuarios' (CRUCIAL)
         try:
-            # Usamos DEFAULT FALSE que es el estándar correcto para PostgreSQL
             conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS acepto_terminos BOOLEAN DEFAULT FALSE;"))
             conn.commit()
-            print("🎉 ¡ÉXITO! Columna 'acepto_terminos' en usuarios creada exitosamente.")
         except Exception as e:
             print(f"⚠️ usuarios acepto_terminos: {e}")
+
+        try:
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR;"))
+            conn.commit()
+            print("🎉 ¡ÉXITO! Columna 'email' en usuarios creada exitosamente.")
+        except Exception as e:
+            print(f"⚠️ usuarios email: {e}")
     
     yield
+
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
 
 app.add_middleware(
@@ -200,6 +199,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <label class="field-label">Usuario</label><input id="loginUser" class="input" placeholder="tu.usuario">
 <label class="field-label">Contraseña</label><input id="loginPass" class="input" type="password" placeholder="••••••••">
 <button id="loginBtn" class="btn btn-primary" onclick="login()">Ingresar al sistema</button>
+<p class="text-center mt-4"><a class="link" onclick="showRecoverForm();return false;">¿Olvidaste tu contraseña?</a></p>
 <p id="loginError" class="hidden text-error mt-4 text-center"></p>
 <div class="divider">o</div>
 <p class="text-center text-muted" style="font-size:14px;">¿Eres candidato? <a class="link" onclick="showRegisterForm();return false;">Regístrate aquí</a></p>
@@ -207,6 +207,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <div id="registerForm" class="hidden">
 <div class="text-center mb-4"><div class="login-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-user-plus"></i></div><h2 class="card-title text-center">Crear cuenta</h2><p class="card-subtitle text-center">Regístrate como candidato</p></div>
 <label class="field-label">Nombre de usuario</label><input id="regUser" class="input" placeholder="ej. juan.perez">
+<label class="field-label">Correo electrónico</label><input id="regEmail" class="input" type="email" placeholder="tu@email.com">
 <label class="field-label">Contraseña</label><input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
 <div style="display:flex; align-items:flex-start; gap:12px; margin:20px 0; padding:16px; background:rgba(99,102,241,0.1); border:2px solid rgba(99,102,241,0.3); border-radius:12px;">
 <input type="checkbox" id="regTerminos" style="margin-top:4px; width:20px; height:20px; cursor:pointer; accent-color:#6366f1;">
@@ -222,6 +223,36 @@ He leído y acepto las <a href="/usuarios/politicas" target="_blank" style="colo
 </div>
 </div>
 </div>
+</section>
+
+<section id="recoverSection" class="hidden">
+    <div class="login-container">
+        <div class="card">
+            <div class="text-center mb-4">
+                <div class="login-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-key"></i></div>
+                <h2 class="card-title text-center">Recuperar Contraseña</h2>
+                <p class="card-subtitle text-center">Ingresa tu correo para recibir un enlace</p>
+            </div>
+            <div id="recoverStep1">
+                <label class="field-label">Correo electrónico registrado</label>
+                <input id="recoverEmail" class="input" type="email" placeholder="tu@email.com">
+                <button class="btn btn-primary" onclick="solicitarRecuperacion()">Enviar enlace</button>
+                <p id="recoverError" class="hidden text-error mt-4 text-center"></p>
+                <p id="recoverSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:700;"></p>
+            </div>
+            <div id="recoverStep2" class="hidden">
+                <label class="field-label">Código de recuperación (Token)</label>
+                <input id="resetToken" class="input" placeholder="Pega el código aquí">
+                <label class="field-label">Nueva Contraseña</label>
+                <input id="newPassword" class="input" type="password" placeholder="Mínimo 6 caracteres">
+                <button class="btn btn-success" onclick="resetearPassword()">Guardar Nueva Contraseña</button>
+                <p id="resetError" class="hidden text-error mt-4 text-center"></p>
+                <p id="resetSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:700;"></p>
+            </div>
+            <div class="divider">o</div>
+            <p class="text-center text-muted" style="font-size:14px;"><a class="link" onclick="showLoginForm();return false;">Volver al inicio de sesión</a></p>
+        </div>
+    </div>
 </section>
 
 <section id="dashboard" class="hidden">
@@ -322,24 +353,31 @@ function eraseText(){
 typeText();
 function showRegisterForm(){document.getElementById('loginForm').classList.add('hidden');document.getElementById('registerForm').classList.remove('hidden');}
 function showLoginForm(){document.getElementById('registerForm').classList.add('hidden');document.getElementById('loginForm').classList.remove('hidden');document.getElementById('regError').classList.add('hidden');document.getElementById('regSuccess').classList.add('hidden');}
+function showRecoverForm(){
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('recoverSection').classList.remove('hidden');
+    document.getElementById('authStatus').classList.add('hidden');
+}
 async function register(){
     var user=document.getElementById('regUser').value.trim();
+    var email=document.getElementById('regEmail').value.trim();
     var pass=document.getElementById('regPass').value.trim();
     var aceptoTerminos=document.getElementById('regTerminos').checked;
     var err=document.getElementById('regError');
     var success=document.getElementById('regSuccess');
     var btn=document.getElementById('regBtn');
     err.classList.add('hidden');success.classList.add('hidden');
-    if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+    if(!user||!email||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+    if(!email.includes('@')){err.textContent='Ingresa un correo electrónico válido.';err.classList.remove('hidden');return;}
     if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.classList.remove('hidden');return;}
     if(!aceptoTerminos){err.textContent='Debes aceptar las políticas de privacidad para registrarte.';err.classList.remove('hidden');return;}
     btn.disabled=true;btn.textContent='Creando cuenta...';
     try{
-        var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,password:pass,rol:"User",acepto_terminos:aceptoTerminos})});
+        var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,email:email,password:pass,rol:"User",acepto_terminos:aceptoTerminos})});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al crear la cuenta.');
         success.textContent='✅ ¡Cuenta creada con éxito!';success.classList.remove('hidden');
-        document.getElementById('regUser').value='';document.getElementById('regPass').value='';document.getElementById('regTerminos').checked=false;
+        document.getElementById('regUser').value='';document.getElementById('regEmail').value='';document.getElementById('regPass').value='';document.getElementById('regTerminos').checked=false;
         setTimeout(function(){showLoginForm();document.getElementById('loginUser').value=user;},2000);
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.textContent='Registrarme';}
@@ -462,7 +500,6 @@ async function revelarIdentidad(id,btn,card){
         box.innerHTML=html;btn.disabled=true;btn.textContent='Revelado';
     }catch(e){box.innerHTML='<p style="color:#ef4444;">Error: '+String(e.message)+'</p>';}
 }
-
 async function cargarCVs(){
     var list=document.getElementById('cvsList');
     list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando CVs...</p>';
@@ -478,7 +515,6 @@ async function cargarCVs(){
             var skillsHtml=(cv.habilidades||[]).map(function(s){return '<span class="skill-tag">'+s+'</span>';}).join('');
             var nombre = cv.nombre_completo || cv.perfil_ciego_id || 'CV-'+cv.id;
             var resumen = cv.experiencia_resumen || 'Sin resumen disponible'; 
-            
             html+='<div class="cv-card" id="cv-card-'+cv.id+'" style="display:flex; flex-direction:column; gap:12px;">';
             html+='<div style="display:flex; justify-content:space-between; align-items:center;">';
             html+='<div class="cv-id" style="font-size:15px;"><i class="fas fa-user-tie" style="color:#818cf8; margin-right:8px;"></i>'+nombre+'</div>';
@@ -505,7 +541,6 @@ async function cargarCVs(){
         list.innerHTML=html;
     }catch(e){list.innerHTML='<p class="text-error text-center">Error: '+String(e.message)+'</p>';}
 }
-
 async function eliminarCV(cvId){
     if(!confirm('¿Estas seguro de que deseas eliminar este CV del sistema? Esta accion no se puede deshacer.')) return;
     try{
@@ -516,7 +551,6 @@ async function eliminarCV(cvId){
         cargarCVs();
     }catch(e){alert('❌ Error: '+String(e.message));}
 }
-
 async function cargarUsuarios(){
     var list=document.getElementById('usersList');
     list.innerHTML='<p class="text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
@@ -590,6 +624,54 @@ async function sendChat(){
         messagesContainer.innerHTML+='<div class="chat-message bot"><div class="chat-bubble">Error de conexión.</div></div>';
     }
 }
+async function solicitarRecuperacion(){
+    var email=document.getElementById('recoverEmail').value.trim();
+    var err=document.getElementById('recoverError');
+    var success=document.getElementById('recoverSuccess');
+    err.classList.add('hidden');success.classList.add('hidden');
+    if(!email||!email.includes('@')){err.textContent='Ingresa un correo válido.';err.classList.remove('hidden');return;}
+    try{
+        var res=await fetch(API_URL+'/usuarios/recuperar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+        var data=await res.json();
+        if(data.token_debug){
+            success.textContent='⚠️ Modo desarrollo: Revisa los logs de Render para obtener el token.';
+            success.classList.remove('hidden');
+            document.getElementById('recoverStep1').classList.add('hidden');
+            document.getElementById('recoverStep2').classList.remove('hidden');
+            document.getElementById('resetToken').value = data.token_debug;
+        } else {
+            success.textContent='✅ Si el correo está registrado, recibirás un enlace.';
+            success.classList.remove('hidden');
+        }
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+}
+async function resetearPassword(){
+    var token=document.getElementById('resetToken').value.trim();
+    var newPass=document.getElementById('newPassword').value.trim();
+    var err=document.getElementById('resetError');
+    var success=document.getElementById('resetSuccess');
+    err.classList.add('hidden');success.classList.add('hidden');
+    if(!token||!newPass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+    if(newPass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.classList.remove('hidden');return;}
+    try{
+        var res=await fetch(API_URL+'/usuarios/resetear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token, nueva_password:newPass})});
+        var data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Error al resetear.');
+        success.textContent='✅ '+data.mensaje;
+        success.classList.remove('hidden');
+        setTimeout(function(){showLoginForm();}, 2500);
+    }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
+}
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('reset_token');
+    if(resetToken) {
+        showRecoverForm();
+        document.getElementById('recoverStep1').classList.add('hidden');
+        document.getElementById('recoverStep2').classList.remove('hidden');
+        document.getElementById('resetToken').value = resetToken;
+    }
+};
 async function cargarEstadisticas(){
     try{
         var res=await fetch(API_URL+'/stats');

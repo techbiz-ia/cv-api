@@ -1,4 +1,8 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
+﻿import secrets
+import smtplib
+from email.message import EmailMessage
+import os
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -178,6 +182,164 @@ ul{margin:15px 0;padding-left:25px}
 <h2>5. Contacto</h2>
 <p>WhatsApp: +54 9 299 329 3669</p>
 <a href="/" class="back-btn">← Volver al inicio</a>
+# ==========================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ==========================================
+
+class RecuperarRequest(BaseModel):
+    email: str
+
+class ResetearRequest(BaseModel):
+    token: str
+    nueva_password: str
+
+def generar_token_reset() -> str:
+    return secrets.token_urlsafe(32)
+
+# Diccionario temporal para guardar tokens (en producción real, esto iría en la BD)
+# Para esta versión, usamos un diccionario en memoria. 
+# Si Render se reinicia, los tokens expiran, lo cual es seguro.
+tokens_reset = {}
+
+@router.post("/recuperar")
+def solicitar_recuperacion(request: RecuperarRequest, db: Session = Depends(get_db)):
+    usuario = db.query(User).filter(User.email == request.email).first()
+    if not usuario:
+        # Por seguridad, no revelamos si el email existe o no
+        return {"mensaje": "Si el correo está registrado, recibirás un enlace de recuperación."}
+    
+    token = generar_token_reset()
+    tokens_reset[token] = usuario.id
+    
+    # ==========================================
+    # CONFIGURACIÓN DE ENVÍO DE CORREO (SMTP)
+    # ==========================================
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    frontend_url = os.getenv("FRONTEND_URL", "https://cv-api-1-ps8r.onrender.com")
+    
+    link_recuperacion = f"{frontend_url}/?reset_token={token}"
+    
+    mensaje = EmailMessage()
+    mensaje.set_content(f"Hola {usuario.nombre},\n\nHaz clic en el siguiente enlace para restablecer tu contraseña:\n{link_recuperacion}\n\nEste enlace es válido por única vez.\n\nSaludos,\nEquipo Nexus Inclusivo")
+    mensaje["Subject"] = "Recuperación de Contraseña - Nexus Inclusivo"
+    mensaje["From"] = smtp_user
+    mensaje["To"] = request.email
+    
+    try:
+        if smtp_user and smtp_password:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.send_message(mensaje)
+            print(f"✅ Correo de recuperación enviado a {request.email}")
+        else:
+            # MODO DESARROLLO: Si no hay SMTP configurado, mostramos el token en los logs
+            print(f"⚠️ MODO DESARROLLO: SMTP no configurado. Token de recuperación para {request.email}: {token}")
+            print(f"⚠️ Usa este enlace para probar: {frontend_url}/?reset_token={token}")
+    except Exception as e:
+        print(f"❌ Error al enviar correo: {e}")
+        # En caso de fallo de email, devolvemos el token para que puedas probar el flujo
+        return {"mensaje": "Modo desarrollo: Usa este token para resetear", "token_debug": token}
+
+    return {"mensaje": "Si el correo está registrado, recibirás un enlace de recuperación."}
+
+@router.post("/resetear")
+def resetear_contrasena(request: ResetearRequest, db: Session = Depends(get_db)):
+    user_id = tokens_reset.get(request.token)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado.")
+    
+    usuario = db.query(User).filter(User.id == user_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+    
+    # Actualizar contraseña
+    usuario.password = pwd_context.hash(request.nueva_password)
+    db.commit()
+    
+    # Invalidar el token después de usarlo
+    del tokens_reset[request.token]
+    
+    return {"mensaje": "Contraseña actualizada exitosamente. Ya puedes iniciar sesión."}
+    # ==========================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ==========================================
+import secrets
+import smtplib
+import os
+from email.message import EmailMessage
+
+class RecuperarRequest(BaseModel):
+    email: str
+
+class ResetearRequest(BaseModel):
+    token: str
+    nueva_password: str
+
+def generar_token_reset() -> str:
+    return secrets.token_urlsafe(32)
+
+# Diccionario temporal para guardar tokens (seguro para esta versión)
+tokens_reset = {}
+
+@router.post("/recuperar")
+def solicitar_recuperacion(request: RecuperarRequest, db: Session = Depends(get_db)):
+    usuario = db.query(User).filter(User.email == request.email).first()
+    if not usuario:
+        return {"mensaje": "Si el correo está registrado, recibirás un enlace de recuperación."}
+    
+    token = generar_token_reset()
+    tokens_reset[token] = usuario.id
+    
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    frontend_url = os.getenv("FRONTEND_URL", "https://cv-api-1-ps8r.onrender.com")
+    
+    link_recuperacion = f"{frontend_url}/?reset_token={token}"
+    
+    mensaje = EmailMessage()
+    mensaje.set_content(f"Hola {usuario.nombre},\n\nHaz clic en el siguiente enlace para restablecer tu contraseña:\n{link_recuperacion}\n\nSaludos,\nEquipo Nexus Inclusivo")
+    mensaje["Subject"] = "Recuperación de Contraseña - Nexus Inclusivo"
+    mensaje["From"] = smtp_user
+    mensaje["To"] = request.email
+    
+    try:
+        if smtp_user and smtp_password:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.send_message(mensaje)
+            print(f"✅ Correo de recuperación enviado a {request.email}")
+        else:
+            print(f"⚠️ MODO DESARROLLO: SMTP no configurado. Token para {request.email}: {token}")
+            print(f"⚠️ Enlace de prueba: {frontend_url}/?reset_token={token}")
+            return {"mensaje": "Modo desarrollo: Revisa los logs de Render para obtener el token", "token_debug": token}
+    except Exception as e:
+        print(f"❌ Error al enviar correo: {e}")
+        return {"mensaje": "Modo desarrollo: Usa este token", "token_debug": token}
+
+    return {"mensaje": "Si el correo está registrado, recibirás un enlace de recuperación."}
+
+@router.post("/resetear")
+def resetear_contrasena(request: ResetearRequest, db: Session = Depends(get_db)):
+    user_id = tokens_reset.get(request.token)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado.")
+    
+    usuario = db.query(User).filter(User.id == user_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+    
+    usuario.password = pwd_context.hash(request.nueva_password)
+    db.commit()
+    del tokens_reset[request.token]
+    
+    return {"mensaje": "Contraseña actualizada exitosamente. Ya puedes iniciar sesión."}
 </div>
 </body>
 </html>"""
