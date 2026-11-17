@@ -187,6 +187,12 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <div class="text-center mb-4"><div class="login-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-user-plus"></i></div><h2 class="card-title text-center">Crear cuenta</h2><p class="card-subtitle text-center">Regístrate como candidato</p></div>
 <label class="field-label">Nombre de usuario</label><input id="regUser" class="input" placeholder="ej. juan.perez">
 <label class="field-label">Contraseña</label><input id="regPass" class="input" type="password" placeholder="Mínimo 6 caracteres">
+<div style="display:flex; align-items:flex-start; gap:12px; margin:20px 0; padding:16px; background:rgba(99,102,241,0.1); border:2px solid rgba(99,102,241,0.3); border-radius:12px;">
+<input type="checkbox" id="regTerminos" style="margin-top:4px; width:20px; height:20px; cursor:pointer; accent-color:#6366f1;">
+<label for="regTerminos" style="font-size:13px; color:#cbd5e1; line-height:1.6; cursor:pointer;">
+He leído y acepto las <a href="/usuarios/politicas" target="_blank" style="color:#818cf8; text-decoration:underline; font-weight:700;">Políticas de Privacidad y Términos de Uso</a>
+</label>
+</div>
 <button id="regBtn" class="btn btn-success" onclick="register()">Registrarme</button>
 <p id="regError" class="hidden text-error mt-4 text-center"></p>
 <p id="regSuccess" class="hidden mt-4 text-center" style="color:#10b981;font-weight:700;"></p>
@@ -298,19 +304,21 @@ function showLoginForm(){document.getElementById('registerForm').classList.add('
 async function register(){
     var user=document.getElementById('regUser').value.trim();
     var pass=document.getElementById('regPass').value.trim();
+    var aceptoTerminos=document.getElementById('regTerminos').checked;
     var err=document.getElementById('regError');
     var success=document.getElementById('regSuccess');
     var btn=document.getElementById('regBtn');
     err.classList.add('hidden');success.classList.add('hidden');
     if(!user||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
     if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.classList.remove('hidden');return;}
+    if(!aceptoTerminos){err.textContent='Debes aceptar las políticas de privacidad para registrarte.';err.classList.remove('hidden');return;}
     btn.disabled=true;btn.textContent='Creando cuenta...';
     try{
-        var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,password:pass,rol:"User"})});
+        var res=await fetch(API_URL+'/usuarios/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:user,password:pass,rol:"User",acepto_terminos:aceptoTerminos})});
         var data=await res.json();
         if(!res.ok) throw new Error(data.detail||'Error al crear la cuenta.');
         success.textContent='✅ ¡Cuenta creada con éxito!';success.classList.remove('hidden');
-        document.getElementById('regUser').value='';document.getElementById('regPass').value='';
+        document.getElementById('regUser').value='';document.getElementById('regPass').value='';document.getElementById('regTerminos').checked=false;
         setTimeout(function(){showLoginForm();document.getElementById('loginUser').value=user;},2000);
     }catch(e){err.textContent=String(e.message);err.classList.remove('hidden');}
     finally{btn.disabled=false;btn.textContent='Registrarme';}
