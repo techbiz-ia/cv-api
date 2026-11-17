@@ -9,24 +9,37 @@ import app.models.cv
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Crear tablas que no existan
+    # 1. Crear tablas base que no existan
     Base.metadata.create_all(bind=engine)
-    print("✅ Tablas verificadas.")
+    print("✅ Tablas base verificadas.")
     
-    # 2. Agregar columnas nuevas de forma segura a tablas existentes
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            # Columnas para la tabla cvs
+    # 2. Migraciones manuales de columnas (INDEPENDIENTES para evitar bloqueos)
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        
+        # Intentar agregar columnas a 'cvs' (si falla, no detiene lo demás)
+        try:
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS whatsapp VARCHAR;"))
+            conn.commit()
+            print("✅ Columna 'whatsapp' en cvs verificada.")
+        except Exception as e:
+            print(f"⚠️ cvs whatsapp: {e}")
+
+        try:
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS archivo_pdf VARCHAR;"))
-            
-            # ¡ESTA ES LA LÍNEA CLAVE QUE FALTABA PARA LA TABLA USUARIOS!
-            conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS acepto_terminos BOOLEAN DEFAULT 0;"))
-            
-        print("✅ Columnas adicionales verificadas o creadas exitosamente.")
-    except Exception as e:
-        print(f"⚠️ Info columnas (puede que ya existan): {e}")
+            conn.commit()
+            print("✅ Columna 'archivo_pdf' en cvs verificada.")
+        except Exception as e:
+            print(f"⚠️ cvs archivo_pdf: {e}")
+
+        # Intentar agregar columna a 'usuarios' (CRUCIAL)
+        try:
+            # Usamos DEFAULT FALSE que es el estándar correcto para PostgreSQL
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS acepto_terminos BOOLEAN DEFAULT FALSE;"))
+            conn.commit()
+            print("🎉 ¡ÉXITO! Columna 'acepto_terminos' en usuarios creada exitosamente.")
+        except Exception as e:
+            print(f"⚠️ usuarios acepto_terminos: {e}")
     
     yield
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
