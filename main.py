@@ -9,18 +9,26 @@ import app.models.cv
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 1. Crear tablas que no existan
     Base.metadata.create_all(bind=engine)
     print("✅ Tablas verificadas.")
+    
+    # 2. Agregar columnas nuevas de forma segura a tablas existentes
     try:
         from sqlalchemy import text
-        with engine.connect() as conn:
+        with engine.begin() as conn:
+            # Columnas para la tabla cvs
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS whatsapp VARCHAR;"))
             conn.execute(text("ALTER TABLE cvs ADD COLUMN IF NOT EXISTS archivo_pdf VARCHAR;"))
-            conn.commit()
+            
+            # ¡ESTA ES LA LÍNEA CLAVE QUE FALTABA PARA LA TABLA USUARIOS!
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS acepto_terminos BOOLEAN DEFAULT 0;"))
+            
+        print("✅ Columnas adicionales verificadas o creadas exitosamente.")
     except Exception as e:
-        print(f"⚠️ Info columnas: {e}")
+        print(f"⚠️ Info columnas (puede que ya existan): {e}")
+    
     yield
-
 app = FastAPI(title="Nexus Inclusivo API", version="12.0.0", lifespan=lifespan)
 
 app.add_middleware(
